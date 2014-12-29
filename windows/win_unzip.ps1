@@ -28,12 +28,16 @@ $result = New-Object psobject @{
 
 If ($params.zip) {
     $zip = $params.zip.toString()
+    
+    If (-Not (Test-Path -path $zip)){
+        Fail-Json $result "zip file: $zip does not exist."
+    }
 }
 Else {
     Fail-Json $result "missing required argument: zip"
 }
 
-If ($params.dest) {
+If (-Not($params.dest -eq $null)) {
     $dest = $params.dest.toString()
 
     If (-Not (Test-Path $dest -PathType Container)){
@@ -47,12 +51,17 @@ Else {
 Try {
     cd C:\
     $shell = New-Object -ComObject Shell.Application 
-    $shell.NameSpace($dest).copyhere(($shell.NameSpace($zip)).items()) 
+    $shell.NameSpace($dest).copyhere(($shell.NameSpace($zip)).items(), 20) 
     $result.changed = $true
 }
 Catch {
-    $result.changed = $false
-    Fail-Json $result "Error unzipping $zip to $dest"
+    $ext = $zip.split(".")[$zip.split(".").length-1]
+    
+    # Used to allow reboot after exe hotfix extraction
+    If (-Not ($ext -eq "exe")){
+        $result.changed = $false
+        Fail-Json $result "Error unzipping $zip to $dest"
+    }
 }
 
 If ($params.rm -eq "true"){
@@ -66,7 +75,7 @@ If ($params.restart -eq "true") {
 }
 
 
-Set-Attr $result.win_unzip "zip" $zip
-Set-Attr $result.win_unzip "dest" $desti
+Set-Attr $result.win_unzip "zip" $zip.toString()
+Set-Attr $result.win_unzip "dest" $dest.toString()
 
 Exit-Json $result;

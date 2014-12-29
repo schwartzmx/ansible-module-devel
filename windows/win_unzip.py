@@ -61,7 +61,7 @@ author: Phil Schwartz
 
 EXAMPLES = '''
 # This unzips hotfix http://support.microsoft.com/kb/2842230 and forces reboot (for hotfix to take effect)
-$ ansible -i hosts -m win_unzip -a "zip=C:\\463984_intl_x64_zip.exe dest=C:\\ restart=true" all
+$ ansible -i hosts -m win_unzip -a "zip=C:\\463984_intl_x64_zip.exe dest=C:\\Hotfix rm=true restart=true" all
 # Playbook example
 ---
 - name: Install WinRM PowerShell Hotfix
@@ -75,7 +75,8 @@ $ ansible -i hosts -m win_unzip -a "zip=C:\\463984_intl_x64_zip.exe dest=C:\\ re
   - name: Unzip hotfix
     win_unzip:
       zip: "C:\\463984_intl_x64_zip.exe"
-      dest: "C:\\"
+      dest: "C:\\Hotfix"
+      rm: true
       restart: true
   - name: Wait for server reboot...
   local_action:

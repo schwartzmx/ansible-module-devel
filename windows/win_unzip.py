@@ -41,6 +41,12 @@ options:
     required: true
     default: null
     aliases: []
+  rm:
+    description:
+      - Remove the zip file, after unzipping
+    required: no
+    default: false
+    aliases: []
   restart:
     description:
       - Restarts the computer after unzip, can be useful for hotfixes such as http://support.microsoft.com/kb/2842230 (Restarts will have to be accounted for with wait_for module)

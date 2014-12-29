@@ -27,14 +27,14 @@ $result = New-Object psobject @{
 }
 
 If ($params.zip) {
-    $zip = $params.zip
+    $zip = $params.zip.toString()
 }
 Else {
     Fail-Json $result "missing required argument: zip"
 }
 
 If ($params.dest) {
-    $dest = $params.dest
+    $dest = $params.dest.toString()
 
     If (-Not (Test-Path $dest -PathType Container)){
         New-Item -itemtype directory -path $dest
@@ -44,18 +44,10 @@ Else {
     Fail-Json $result "missing required argument: dest"
 }
 
-If ($params.restart) {
-    $restart = $params.restart | ConvertTo-Bool
-}
-Else {
-    $restart = $false
-}
-
 Try {
-    $shell_app = new-object -com shell.application
-    $zip_file = $shell_app.namespace($zip)
-    $destination = $shell_app.namespace($dest)
-    $destination.Copyhere($zip_file.items())
+    cd C:\
+    $shell = New-Object -ComObject Shell.Application 
+    $shell.NameSpace($dest).copyhere(($shell.NameSpace($zip)).items()) 
     $result.changed = $true
 }
 Catch {
@@ -63,13 +55,18 @@ Catch {
     Fail-Json $result "Error unzipping $zip to $dest"
 }
 
-If ($restart -eq $true) {
+If ($params.rm -eq "true"){
+    Remove-Item $zip -Recurse -Force
+    Set-Attr $result.win_unzip "rm" "true"
+}
+
+If ($params.restart -eq "true") {
     Restart-Computer -Force
+    Set-Attr $result.win_unzip "restart" "true"
 }
 
 
-
 Set-Attr $result.win_unzip "zip" $zip
-Set-Attr $result.win_unzip "dest" $dest
+Set-Attr $result.win_unzip "dest" $desti
 
 Exit-Json $result;

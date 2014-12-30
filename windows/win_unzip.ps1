@@ -28,7 +28,7 @@ $result = New-Object psobject @{
 
 If ($params.zip) {
     $zip = $params.zip.toString()
-    
+
     If (-Not (Test-Path -path $zip)){
         Fail-Json $result "zip file: $zip does not exist."
     }
@@ -41,7 +41,12 @@ If (-Not($params.dest -eq $null)) {
     $dest = $params.dest.toString()
 
     If (-Not (Test-Path $dest -PathType Container)){
-        New-Item -itemtype directory -path $dest
+        Try{  
+            New-Item -itemtype directory -path $dest
+        }
+        Catch {
+            Fail-Json $result "Error creating $dest directory"
+        }
     }
 }
 Else {
@@ -50,14 +55,16 @@ Else {
 
 Try {
     cd C:\
-    $shell = New-Object -ComObject Shell.Application 
-    $shell.NameSpace($dest).copyhere(($shell.NameSpace($zip)).items(), 20) 
+    $shell = New-Object -ComObject Shell.Application
+    $shell.NameSpace($dest).copyhere(($shell.NameSpace($zip)).items(), 20)
     $result.changed = $true
 }
 Catch {
-    $ext = $zip.split(".")[$zip.split(".").length-1]
-    
-    # Used to allow reboot after exe hotfix extraction
+    $sp = $zip.split(".")
+    $ext = $sp[$sp.length-1]
+
+    # Used to allow reboot after exe hotfix extraction (Windows 2008 R2 SP1)
+    # This will have no effect in most cases.
     If (-Not ($ext -eq "exe")){
         $result.changed = $false
         Fail-Json $result "Error unzipping $zip to $dest"

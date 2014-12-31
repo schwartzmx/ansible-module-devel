@@ -162,6 +162,7 @@ If ($method -match "upload" -And $isLeaf){
         If ($rm){
             Remove-Item -Path $local -Force
         }
+    }
     Catch {
         Fail-Json $result "Error uploading $local and saving as $buckey$key"
     }
@@ -208,6 +209,9 @@ ElseIf ($method -match "download" -And $isContainer){
 
         Read-S3Object -BucketName $bucket -KeyPrefix $key -Folder $local
         $result.changed = $true
+    }
+    Catch {
+        Fail-Json $result "Error downloading $bucket$key and saving as $local"
     }
 }
 Else {

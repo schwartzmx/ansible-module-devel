@@ -118,7 +118,7 @@ Else {
 Try {
     # On success Write-Zip writes to std-out. This is the reason for piping to out-null (And also b/c their -Quiet switch won't work).
     # This allows for the try-catch to still catch errors, but not fail on success output.
-    Write-Zip -Path $src -OutputPath $dest -IncludeEmptyDirectories | out-null
+    Write-Zip -Path $src -OutputPath $dest -Level 9 -IncludeEmptyDirectories | out-null
     $result.changed = $true
 
     If ($rm){

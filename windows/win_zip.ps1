@@ -39,24 +39,28 @@ $isContainer = $false
 # Check if PSCX is installed
 $list = Get-Module -ListAvailable
 # If not download it and install
-If (-Not ($list -match "PSCX")){
-    Try{
+If (-Not ($list -match "PSCX")) {
+    Try {
         $client = New-Object System.Net.WebClient
         $client.DownloadFile($url, $dest)
     }
     Catch {
         Fail-Json $result "Error downloading PSCX from $url and saving as $dest"
     }
-    Try{
+    Try {
         msiexec.exe /i $dest /qb
     }
     Catch {
         Fail-Json $result "Error installing $dest"
     }
+    Set-Attr $result.win_zip "pscx_status" "pscx was installed"
+}
+Else {
+    Set-Attr $result.win_zip "pscx_status" "present"
 }
 
 # Import
-Try{
+Try {
     Import-Module PSCX
 }
 Catch {
@@ -66,13 +70,13 @@ Catch {
 # Get Params
 # SRC
 # Detect if file or directory
-If ($params.src){
+If ($params.src) {
     $src = $params.src.toString()
 
-    If(Test-Path $src -PathType Leaf){
+    If(Test-Path $src -PathType Leaf) {
         $isLeaf = $true
     }
-    ElseIf (Test-Path $src -PathType Container){
+    ElseIf (Test-Path $src -PathType Container) {
         $isContainer = $true
     }
     Else {
@@ -85,12 +89,12 @@ Else {
 }
 
 # DEST
-If ($params.dest){
+If ($params.dest) {
     $dest = $params.dest.toString()
 
     If ($isLeaf){
         #Ensure .zip is extension, if not add it.
-        If (-Not ([System.IO.Path]::GetExtension($dest) -match ".zip")){
+        If (-Not ([System.IO.Path]::GetExtension($dest) -match ".zip")) {
             $dest = $dest + ".zip"
         }
     }
@@ -100,14 +104,15 @@ Else {
 }
 
 # Zip
-Try{
-    # See if write-zip is able to just zip one file
+Try {
     Write-Zip -Path $src -OutputPath $dest -IncludeEmptyDirectories
-    # IF write-zip won't work, take look at http://www.codeproject.com/Articles/641275/Create-zip-files-using-PowerShell
     $result.changed = $true
 }
 Catch {
     Fail-Json $result "Error zipping $src to $dest"
 }
+
+Set-Attr $result.win_zip "src" $src.toString()
+Set-Attr $result.win_zip "dest" $dest.toString()
 
 

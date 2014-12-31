@@ -193,6 +193,15 @@ ElseIf ($method -match "download" -And $isContainer){
         $result.changed = $true
     }
 }
+Else {
+    Fail-Json $result "Unknown error occured in downloading"
+}
+
+Set-Attr $result.win_s3 "bucket" $bucket.toString()
+Set-Attr $result.win_s3 "key" $key.toString()
+Set-Attr $result.win_s3 "method" $method.toString()
+Set-Attr $result.win_s3 "local" $local.toString()
+
 
 
 

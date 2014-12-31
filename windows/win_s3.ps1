@@ -102,7 +102,7 @@ If ($params.local) {
     $local = $params.local.toString()
 
     # test that local file exists
-    If (Test-Path $local -PathType Leaf)){
+    If (Test-Path $local -PathType Leaf){
         $isLeaf = $true
     }
     ElseIf (Test-Path $local -PathType Container){

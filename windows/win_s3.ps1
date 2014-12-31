@@ -40,16 +40,13 @@ If (-Not ($list -match "AWSPowerShell")){
     Catch {
         Fail-Json $result "Error downloading AWS-SDK from $url and saving as $sdkdest"
     }
-
     Try{
         msiexec.exe /i $sdkdest /qb
     }
     Catch {
         Fail-Json $result "Error installing $sdkdest"
     }
-
 }
-
 
 # Import Module
 Import-Module AWSPowerShell
@@ -58,6 +55,14 @@ Import-Module AWSPowerShell
 # BUCKET
 If ($params.bucket) {
     $bucket = $params.bucket.toString()
+
+    # Test that the bucket exists
+    Try{
+        Test-S3Bucket -BucketName $bucket
+    }
+    Catch {
+        Fail-Json $result "Error. Bucket: $bucket not found. Or authorization to access bucket failed."
+    }
 }
 Else {
     Fail-Json $result "missing required argument: bucket"
@@ -85,7 +90,7 @@ If ($params.local) {
 If ($params.localdir) {
     $localdir = $params.localdir.toString()
 
-    # test that local file exists
+    # test that local directory exists
     If (-Not (Test-Path $localdir -PathType Container)){
         Fail-Json $result "Local directory: $localdir does not exist"
     }
@@ -95,7 +100,8 @@ If ($params.localdir) {
 If ($params.method) {
     $method = $params.method.toString()
 
-    If (-Not ($method -match "download" | "upload" | "sync")){
+    # Check for valid method
+    If (-Not ($method -match "download" -Or "upload")){
         Fail-Json $result "Invalid method parameter entered: $method"
     }
 }
@@ -112,11 +118,68 @@ If ($params.access_key -And $params.secret_key) {
     Set-AWSCredentials -AccessKey $access_key -SecretKey $secret_key -StoreAs default
 }
 ElseIf ($params.access_key -Or $params.secret_key) {
-    Fail-Json $result "Error only one key for AWS credentials was found. AK: $access_key SK: $secret_key"
+    If ($params.access_key){
+        Fail-Json $result "Missing credential: secret_key"
+    }
+    Else {
+        Fail-Json $result "Missing credential: access_key"
+    }
 }
 
-# Upload
+# Upload file
+If ($method -match "upload" -And $local){
+    Try{
+        # If a key-prefix is entered instead of a full key (including file name), append local file name to key for upload
+        If ($key[$key.length-1] -eq "/" -Or "\") {
+            $basename = Split-Path $local -Leaf
+            Write-S3Object -BucketName $bucket -Key $key$basename -File $local
+            $result.changed = $true
+        }
+        Else {
+            Write-S3Object -BucketName $bucket -Key $key -File $local
+            $result.changed = $true
+        }
+    Catch {
+        Fail-Json $result "Error uploading $local and saving as $buckey$key"
+    }
+}
+# Upload all files within a directory
+# * When uploading an entire directory, the key specified must just be the key-prefix so that the file names will be appended
+ElseIf ($method -match "upload" -And $localdir){
+    Try {
+        If (-Not ($key[$key.length-1] -eq "/" -Or "\")){
+            Fail-Json $result "Invalid key-prefix entered for uploading an entire directory. Example key: 'Path/To/Save/To/'"
+        }
 
-# Download
+        Write-S3Object -BucketName $bucket -Folder $localdir -KeyPrefix $key
+        $result.changed = $true
+    }
+    Catch {
+        Fail-Json $result "Error occured when uploading files from $localdir to $bucket$key"
+    }
+}
 
-# Sync
+# Download file
+If ($method -match "download" -And $local){
+    Try{
+        Read-S3Object -BucketName $bucket -Key $key -file $local
+        $result.changed = $true
+    }
+    Catch {
+        Fail-Json $result "Error downloading $bucket$key and saving as $local"
+    }
+}
+# Download all files within an s3 key-prefix virtual directory
+ElseIf ($method -match "download" -And $localdir){
+    Try{
+        If (-Not ($key[$key.length-1] -eq "/" -Or "\")){
+            Fail-Json $result "Invalid key-prefix entered for downloading an entire virt directory. Example key: 'Path/To/Save/To/'"
+        }
+
+        Read-S3Object -BucketName $bucket -KeyPrefix $key -Folder $localdir
+        $result.changed = $true
+    }
+}
+
+
+

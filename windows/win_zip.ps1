@@ -27,7 +27,6 @@ $result = New-Object psobject @{
 }
 
 # Requires PSCX, will be installed if it isn't found
-# Can be useful and a must-have for running other useful scripts
 # Pscx-3.2.0.msi
 $url = "http://download-codeplex.sec.s-msft.com/Download/Release?ProjectName=pscx&DownloadId=923562&FileTime=130585918034470000&Build=20959"
 $dest = "C:\Pscx-3.2.0.msi"
@@ -69,7 +68,6 @@ Catch {
 
 # Get Params (SRC, DEST, RM)
 # SRC
-# Detect if file or directory
 If ($params.src) {
     $src = $params.src.toString()
 

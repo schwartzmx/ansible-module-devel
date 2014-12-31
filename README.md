@@ -5,7 +5,7 @@ This is where my work on ansible modules will be done before submitting PRs to h
 
 #####Current module dev:
 - Windows
-  - win_unzip
-  - win_zip
-  - win_s3
+  - `win_unzip`
+  - `win_zip`
+  - `win_s3`
 

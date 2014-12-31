@@ -86,7 +86,14 @@ Else {
 
 # DEST
 If ($params.dest){
-    $src = $params.dest.toString()
+    $dest = $params.dest.toString()
+
+    If ($isLeaf){
+        #Ensure .zip is extension, if not add it.
+        If (-Not ([System.IO.Path]::GetExtension($dest) -match ".zip")){
+            $dest = $dest + ".zip"
+        }
+    }
 }
 Else {
     Fail-Json $result "missing required argument: dest"

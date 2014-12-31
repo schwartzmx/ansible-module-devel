@@ -50,6 +50,10 @@ If (-Not ($list -match "AWSPowerShell")){
     Catch {
         Fail-Json $result "Error installing $sdkdest"
     }
+    Set-Attr $result.win_s3 "aws_sdk_status" "aws_sdk was installed"
+}
+Else {
+    Set-Attr $result.win_s3 "aws_sdk_status" "present"
 }
 
 # Import Module
@@ -60,7 +64,7 @@ Catch {
     Fail-Json $result "Error importing module AWSPowerShell"
 }
 
-# ---Get Parameters---
+# ---Get Parameters--- (BUCKET, KEY, LOCAL, RM, METHOD, ACCESS_KEY, SECRET_KEY)
 # BUCKET
 If ($params.bucket) {
     $bucket = $params.bucket.toString()
@@ -83,6 +87,14 @@ If ($params.key) {
 }
 Else {
     Fail-Json $result "missing required argument: key"
+}
+
+# RM (remove local file after successful upload)
+If ($params.rm -match "true" -Or "yes") {
+    $rm = $true
+}
+Else {
+    $rm = $false
 }
 
 # LOCAL (file)
@@ -149,6 +161,10 @@ If ($method -match "upload" -And $isLeaf){
             Write-S3Object -BucketName $bucket -Key $key -File $local
             $result.changed = $true
         }
+
+        If ($rm){
+            Remove-Item -Path $local -Force
+        }
     Catch {
         Fail-Json $result "Error uploading $local and saving as $buckey$key"
     }
@@ -163,6 +179,10 @@ ElseIf ($method -match "upload" -And $isContainer){
 
         Write-S3Object -BucketName $bucket -Folder $local -KeyPrefix $key
         $result.changed = $true
+
+        If ($rm){
+            Remove-Item -Path $local -Force -Recurse
+        }
     }
     Catch {
         Fail-Json $result "Error occured when uploading files from $local to $bucket$key"
@@ -201,7 +221,4 @@ Set-Attr $result.win_s3 "bucket" $bucket.toString()
 Set-Attr $result.win_s3 "key" $key.toString()
 Set-Attr $result.win_s3 "method" $method.toString()
 Set-Attr $result.win_s3 "local" $local.toString()
-
-
-
-
+Set-Attr $result.win_s3 "rm" $rm.toString()

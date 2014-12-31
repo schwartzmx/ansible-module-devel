@@ -67,7 +67,7 @@ Catch {
     Fail-Json $result "Error importing module PSCX"
 }
 
-# Get Params
+# Get Params (SRC, DEST, RM)
 # SRC
 # Detect if file or directory
 If ($params.src) {

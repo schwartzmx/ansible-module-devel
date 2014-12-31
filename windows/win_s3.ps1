@@ -25,6 +25,7 @@ $sdkdest = "C:\AWSPowerShell.msi"
 # Global flags
 $isLeaf = $false
 $isContainer = $false
+$rm = $false
 
 $params = Parse-Args $args;
 
@@ -102,7 +103,7 @@ If ($params.method) {
     $method = $params.method.toString()
 
     # Check for valid method
-    If (-Not ($method -match "download" -Or "upload")){
+    If (-Not ($method -match "download" -Or "upload" -Or "download-dir")){
         Fail-Json $result "Invalid method parameter entered: $method"
     }
 }
@@ -147,50 +148,52 @@ ElseIf ($params.access_key -Or $params.secret_key) {
     }
 }
 
-# Upload file
-If ($method -match "upload" -And $isLeaf){
-    Try{
-        # If a key-prefix is entered instead of a full key (including file name), append local file name to key for upload
-        If ($key[$key.length-1] -eq "/" -Or "\") {
-            $basename = Split-Path $local -Leaf
-            Write-S3Object -BucketName $bucket -Key $key$basename -File $local
-            $result.changed = $true
-        }
-        Else {
-            Write-S3Object -BucketName $bucket -Key $key -File $local
-            $result.changed = $true
-        }
+# Upload file or Directory
+If ($method -match "upload"){
+    #Upload file
+    If ($method -match "upload" -And $isLeaf){
+        Try{
+            # If a key-prefix is entered instead of a full key (including file name), append local file name to key for upload
+            If ($key[$key.length-1] -eq "/" -Or "\") {
+                $basename = Split-Path $local -Leaf
+                Write-S3Object -BucketName $bucket -Key $key$basename -File $local
+                $result.changed = $true
+            }
+            Else {
+                Write-S3Object -BucketName $bucket -Key $key -File $local
+                $result.changed = $true
+            }
 
-        If ($rm){
-            Remove-Item -Path $local -Force
+            If ($rm){
+                Remove-Item -Path $local -Force
+            }
+        }
+        Catch {
+            Fail-Json $result "Error uploading $local and saving as $buckey$key"
         }
     }
-    Catch {
-        Fail-Json $result "Error uploading $local and saving as $buckey$key"
+    # Upload all files within a directory
+    # * When uploading an entire directory, the key specified must just be the key-prefix so that the file names will be appended
+    ElseIf ($method -match "upload" -And $isContainer){
+        Try {
+            If (-Not ($key[$key.length-1] -eq "/" -Or "\")){
+                Fail-Json $result "Invalid key-prefix entered for uploading an entire directory. Example key: 'Path/To/Save/To/'"
+            }
+
+            Write-S3Object -BucketName $bucket -Folder $local -KeyPrefix $key -Recurse
+            $result.changed = $true
+
+            If ($rm){
+                Remove-Item -Path $local -Force -Recurse
+            }
+        }
+        Catch {
+            Fail-Json $result "Error occured when uploading files from $local to $bucket$key"
+        }
     }
 }
-# Upload all files within a directory
-# * When uploading an entire directory, the key specified must just be the key-prefix so that the file names will be appended
-ElseIf ($method -match "upload" -And $isContainer){
-    Try {
-        If (-Not ($key[$key.length-1] -eq "/" -Or "\")){
-            Fail-Json $result "Invalid key-prefix entered for uploading an entire directory. Example key: 'Path/To/Save/To/'"
-        }
-
-        Write-S3Object -BucketName $bucket -Folder $local -KeyPrefix $key -Recurse
-        $result.changed = $true
-
-        If ($rm){
-            Remove-Item -Path $local -Force -Recurse
-        }
-    }
-    Catch {
-        Fail-Json $result "Error occured when uploading files from $local to $bucket$key"
-    }
-}
-
 # Download file
-If ($method -match "download" -And $isLeaf){
+ElseIf ($method -match "download"){
     Try{
         Read-S3Object -BucketName $bucket -Key $key -file $local
         $result.changed = $true
@@ -200,7 +203,7 @@ If ($method -match "download" -And $isLeaf){
     }
 }
 # Download all files within an s3 key-prefix virtual directory
-ElseIf ($method -match "download" -And $isContainer){
+ElseIf ($method -match "download-dir"){
     Try{
         If (-Not ($key[$key.length-1] -eq "/" -Or "\")){
             Fail-Json $result "Invalid key-prefix entered for downloading an entire virt directory. Example key: 'Path/To/Save/To/'"
@@ -210,7 +213,7 @@ ElseIf ($method -match "download" -And $isContainer){
         $result.changed = $true
     }
     Catch {
-        Fail-Json $result "Error downloading $bucket$key and saving as $local"
+        Fail-Json $result "Error in downloading virtual dir $bucket$key and saving as $local"
     }
 }
 

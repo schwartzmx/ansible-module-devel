@@ -92,24 +92,46 @@ Else {
 If ($params.dest) {
     $dest = $params.dest.toString()
 
-    If ($isLeaf){
-        #Ensure .zip is extension, if not add it.
-        If (-Not ([System.IO.Path]::GetExtension($dest) -match ".zip")) {
-            $dest = $dest + ".zip"
-        }
+    If ((Test-Path $dest -PathType Container) -Or ($dest[$dest.length-1] -eq "/" -Or "\")){
+        Fail-Json $result "Error in dest arg. Please provide the desired zip file name at the end of the path. (C:\Users\Path\Ex.zip)"
     }
+
+
+    If (-Not ([System.IO.Path]::GetExtension($dest) -match ".zip")) {
+        $dest = $dest + ".zip"
+    }
+
 }
 Else {
     Fail-Json $result "missing required argument: dest"
+}
+
+#RM
+If ($params.rm){
+    $rm = $true
+}
+Else {
+    $rm = $false
 }
 
 # Zip
 Try {
     Write-Zip -Path $src -OutputPath $dest -IncludeEmptyDirectories
     $result.changed = $true
+
+    If ($rm){
+        Try {
+            Remove-Item -Path $src -Force -Recurse
+            Set-Attr $result.win_zip "rm" "removed $src"
+        }
+        Catch {
+            Fail-Json $result "Error removing $src"
+        }
+    }
 }
 Catch {
-    Fail-Json $result "Error zipping $src to $dest"
+    $directory = [System.IO.Path]::GetDirectoryName($dest)
+    Fail-Json $result "Error zipping $src to $dest. \n $directory may not exist."
 }
 
 Set-Attr $result.win_zip "src" $src.toString()

@@ -45,6 +45,11 @@ options:
     description:
       - Remove the zip file, after unzipping
     required: no
+    choices:
+      - true
+      - false
+      - yes
+      - no
     default: false
     aliases: []
   restart:
@@ -53,6 +58,8 @@ options:
     choices:
       - true
       - false
+      - yes
+      - no
     required: false
     default: false
     aliases: []

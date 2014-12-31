@@ -134,9 +134,6 @@ If ($params.access_key -And $params.secret_key) {
     $access_key = $params.access_key.toString()
     $secret_key = $params.secret_key.toString()
 
-    # Set credentials to default profile (maybe specify a profile as a param?)
-    # May also want to have a param on whether to clear the Set credentials after running play
-    # Clear-AWSCredentials -StoredCredentials default
     Set-AWSCredentials -AccessKey $access_key -SecretKey $secret_key -StoreAs default
 }
 ElseIf ($params.access_key -Or $params.secret_key) {

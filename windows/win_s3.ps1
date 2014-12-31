@@ -219,3 +219,5 @@ Set-Attr $result.win_s3 "key" $key.toString()
 Set-Attr $result.win_s3 "method" $method.toString()
 Set-Attr $result.win_s3 "local" $local.toString()
 Set-Attr $result.win_s3 "rm" $rm.toString()
+
+Exit-Json $result;

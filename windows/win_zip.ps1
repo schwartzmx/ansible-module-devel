@@ -92,7 +92,7 @@ Else {
 If ($params.dest) {
     $dest = $params.dest.toString()
 
-    If ((Test-Path $dest -PathType Container) -Or ($dest[$dest.length-1] -eq "/" -Or "\")){
+    If (Test-Path $dest -PathType Container) {
         Fail-Json $result "Error in dest arg. Please provide the desired zip file name at the end of the path. (C:\Users\Path\Ex.zip)"
     }
 
@@ -116,7 +116,9 @@ Else {
 
 # Zip
 Try {
-    Write-Zip -Path $src -OutputPath $dest -IncludeEmptyDirectories
+    # On success Write-Zip writes to std-out. This is the reason for piping to out-null (And also b/c their -Quiet switch won't work).
+    # This allows for the try-catch to still catch errors, but not fail on success output.
+    Write-Zip -Path $src -OutputPath $dest -IncludeEmptyDirectories | out-null
     $result.changed = $true
 
     If ($rm){
@@ -131,10 +133,17 @@ Try {
 }
 Catch {
     $directory = [System.IO.Path]::GetDirectoryName($dest)
-    Fail-Json $result "Error zipping $src to $dest. \n $directory may not exist."
+    If (-Not (Test-Path -Path $directory -PathType Container)) {
+        Fail-Json $result "Directory: $directory does not exist in the dest provided."
+    }
+    Else {
+        Fail-Json $result "Error zipping $src to $dest."
+    }
 }
 
 Set-Attr $result.win_zip "src" $src.toString()
 Set-Attr $result.win_zip "dest" $dest.toString()
+
+Exit-Json $result;
 
 

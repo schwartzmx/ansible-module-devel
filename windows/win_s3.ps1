@@ -71,7 +71,7 @@ If ($params.bucket) {
 
     # Test that the bucket exists
     Try{
-        Test-S3Bucket -BucketName $bucket
+        Test-S3Bucket -BucketName $bucket.toString()
     }
     Catch {
         Fail-Json $result "Error. Bucket: $bucket not found. Or authorization to access bucket failed."
@@ -97,25 +97,6 @@ Else {
     $rm = $false
 }
 
-# LOCAL (file)
-If ($params.local) {
-    $local = $params.local.toString()
-
-    # test that local file exists
-    If (Test-Path $local -PathType Leaf){
-        $isLeaf = $true
-    }
-    ElseIf (Test-Path $local -PathType Container){
-        $isContainer = $true
-    }
-    Else{
-        Fail-Json $result "Local file or directory: $local does not exist"
-    }
-}
-Else {
-    Fail-Json $result "missing required argument: local"
-}
-
 # METHOD
 If ($params.method) {
     $method = $params.method.toString()
@@ -128,6 +109,27 @@ If ($params.method) {
 Else {
     Fail-Json $result "missing required argument: method"
 }
+
+# LOCAL (file)
+If ($params.local) {
+    $local = $params.local.toString()
+
+    If ($method -match "upload"){
+        If (Test-Path $local -PathType Leaf){
+            $isLeaf = $true
+        }
+        ElseIf (Test-Path $local -PathType Container){
+            $isContainer = $true
+        }
+        Else{
+            Fail-Json $result "Local file or directory: $local does not exist"
+        }
+    }
+}
+Else {
+    Fail-Json $result "missing required argument: local"
+}
+
 
 # Credentials
 If ($params.access_key -And $params.secret_key) {
@@ -175,7 +177,7 @@ ElseIf ($method -match "upload" -And $isContainer){
             Fail-Json $result "Invalid key-prefix entered for uploading an entire directory. Example key: 'Path/To/Save/To/'"
         }
 
-        Write-S3Object -BucketName $bucket -Folder $local -KeyPrefix $key
+        Write-S3Object -BucketName $bucket -Folder $local -KeyPrefix $key -Recurse
         $result.changed = $true
 
         If ($rm){
@@ -185,9 +187,6 @@ ElseIf ($method -match "upload" -And $isContainer){
     Catch {
         Fail-Json $result "Error occured when uploading files from $local to $bucket$key"
     }
-}
-Else {
-    Fail-Json $result "Unknown error occured in uploading"
 }
 
 # Download file
@@ -214,9 +213,7 @@ ElseIf ($method -match "download" -And $isContainer){
         Fail-Json $result "Error downloading $bucket$key and saving as $local"
     }
 }
-Else {
-    Fail-Json $result "Unknown error occured in downloading"
-}
+
 
 Set-Attr $result.win_s3 "bucket" $bucket.toString()
 Set-Attr $result.win_s3 "key" $key.toString()

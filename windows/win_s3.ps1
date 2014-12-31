@@ -22,6 +22,10 @@
 $url = "http://sdk-for-net.amazonwebservices.com/latest/AWSToolsAndSDKForNet.msi"
 $sdkdest = "C:\AWSPowerShell.msi"
 
+# Global flags
+$isLeaf = $false
+$isContainer = $false
+
 $params = Parse-Args $args;
 
 $result = New-Object psobject @{
@@ -49,9 +53,14 @@ If (-Not ($list -match "AWSPowerShell")){
 }
 
 # Import Module
-Import-Module AWSPowerShell
+Try {
+    Import-Module AWSPowerShell
+}
+Catch {
+    Fail-Json $result "Error importing module AWSPowerShell"
+}
 
-# Get Parameters
+# ---Get Parameters---
 # BUCKET
 If ($params.bucket) {
     $bucket = $params.bucket.toString()
@@ -81,19 +90,18 @@ If ($params.local) {
     $local = $params.local.toString()
 
     # test that local file exists
-    If (-Not (Test-Path $local)){
-        Fail-Json $result "Local file: $local does not exist"
+    If (Test-Path $local -PathType Leaf)){
+        $isLeaf = $true
+    }
+    ElseIf (Test-Path $local -PathType Container){
+        $isContainer = $true
+    }
+    Else{
+        Fail-Json $result "Local file or directory: $local does not exist"
     }
 }
-
-# LOCALDIR (directory)
-If ($params.localdir) {
-    $localdir = $params.localdir.toString()
-
-    # test that local directory exists
-    If (-Not (Test-Path $localdir -PathType Container)){
-        Fail-Json $result "Local directory: $localdir does not exist"
-    }
+Else {
+    Fail-Json $result "missing required argument: local"
 }
 
 # METHOD
@@ -115,6 +123,8 @@ If ($params.access_key -And $params.secret_key) {
     $secret_key = $params.secret_key.toString()
 
     # Set credentials to default profile (maybe specify a profile as a param?)
+    # May also want to have a param on whether to clear the Set credentials after running play
+    # Clear-AWSCredentials -StoredCredentials default
     Set-AWSCredentials -AccessKey $access_key -SecretKey $secret_key -StoreAs default
 }
 ElseIf ($params.access_key -Or $params.secret_key) {
@@ -127,7 +137,7 @@ ElseIf ($params.access_key -Or $params.secret_key) {
 }
 
 # Upload file
-If ($method -match "upload" -And $local){
+If ($method -match "upload" -And $isLeaf){
     Try{
         # If a key-prefix is entered instead of a full key (including file name), append local file name to key for upload
         If ($key[$key.length-1] -eq "/" -Or "\") {
@@ -145,22 +155,25 @@ If ($method -match "upload" -And $local){
 }
 # Upload all files within a directory
 # * When uploading an entire directory, the key specified must just be the key-prefix so that the file names will be appended
-ElseIf ($method -match "upload" -And $localdir){
+ElseIf ($method -match "upload" -And $isContainer){
     Try {
         If (-Not ($key[$key.length-1] -eq "/" -Or "\")){
             Fail-Json $result "Invalid key-prefix entered for uploading an entire directory. Example key: 'Path/To/Save/To/'"
         }
 
-        Write-S3Object -BucketName $bucket -Folder $localdir -KeyPrefix $key
+        Write-S3Object -BucketName $bucket -Folder $local -KeyPrefix $key
         $result.changed = $true
     }
     Catch {
-        Fail-Json $result "Error occured when uploading files from $localdir to $bucket$key"
+        Fail-Json $result "Error occured when uploading files from $local to $bucket$key"
     }
+}
+Else {
+    Fail-Json $result "Unknown error occured in uploading"
 }
 
 # Download file
-If ($method -match "download" -And $local){
+If ($method -match "download" -And $isLeaf){
     Try{
         Read-S3Object -BucketName $bucket -Key $key -file $local
         $result.changed = $true
@@ -170,13 +183,13 @@ If ($method -match "download" -And $local){
     }
 }
 # Download all files within an s3 key-prefix virtual directory
-ElseIf ($method -match "download" -And $localdir){
+ElseIf ($method -match "download" -And $isContainer){
     Try{
         If (-Not ($key[$key.length-1] -eq "/" -Or "\")){
             Fail-Json $result "Invalid key-prefix entered for downloading an entire virt directory. Example key: 'Path/To/Save/To/'"
         }
 
-        Read-S3Object -BucketName $bucket -KeyPrefix $key -Folder $localdir
+        Read-S3Object -BucketName $bucket -KeyPrefix $key -Folder $local
         $result.changed = $true
     }
 }

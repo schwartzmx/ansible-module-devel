@@ -91,7 +91,7 @@ Else {
 }
 
 # RM (remove local file after successful upload)
-If ($params.rm -match ("true" -Or "yes")) {
+If ($params.rm -eq "true" -Or $params.rm -eq "yes") {
     $rm = $true
 }
 Else {
@@ -103,7 +103,7 @@ If ($params.method) {
     $method = $params.method.toString()
 
     # Check for valid method
-    If (-Not ($method -eq "download" -Or $method -eq "upload" -Or $method -eq "download-dir"))){
+    If (-Not ($method -eq "download" -Or $method -eq "upload" -Or $method -eq "download-dir")){
         Fail-Json $result "Invalid method parameter entered: $method"
     }
 }
@@ -203,7 +203,7 @@ ElseIf ($method -eq "download"){
     }
 }
 # Download all files within an s3 key-prefix virtual directory
-ElseIf ($method -match "download-dir"){
+ElseIf ($method -eq "download-dir"){
     Try{
         If (-Not ($key[$key.length-1] -eq "/" -Or "\")){
             Fail-Json $result "Invalid key-prefix entered for downloading an entire virt directory. Example key: 'Path/To/Save/To/'"

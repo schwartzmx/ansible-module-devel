@@ -95,7 +95,7 @@ If ($params.dest) {
     }
 
 
-    If (-Not ([System.IO.Path]::GetExtension($dest) -match ".zip")) {
+    If (-Not ([System.IO.Path]::GetExtension($dest) -eq ".zip")) {
         $dest = $dest + ".zip"
     }
 
@@ -105,7 +105,7 @@ Else {
 }
 
 #RM
-If ($params.rm){
+If ($params.rm -eq "true" -Or $params.rm -eq "yes"){
     $rm = $true
 }
 Else {

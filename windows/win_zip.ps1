@@ -141,6 +141,7 @@ Catch {
 
 Set-Attr $result.win_zip "src" $src.toString()
 Set-Attr $result.win_zip "dest" $dest.toString()
+Set-Attr $result.win_zip "rm" $rm.toString()
 
 Exit-Json $result;
 

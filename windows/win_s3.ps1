@@ -206,7 +206,7 @@ ElseIf ($method -eq "download"){
 ElseIf ($method -eq "download-dir"){
     Try{
         If (-Not ($key[$key.length-1] -eq "/" -Or $key[$key.length-1] -eq "\")){
-            Fail-Json $result "Invalid key-prefix entered for downloading an entire virt directory. Example key: 'Path/To/Save/To/'"
+            Fail-Json $result "Invalid key-prefix entered for downloading an entire virt directory. Example key: 'Key/To/Dwnld/From/'"
         }
 
         Read-S3Object -BucketName $bucket -KeyPrefix $key -Folder $local

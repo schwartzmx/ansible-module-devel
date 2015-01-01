@@ -154,7 +154,7 @@ If ($method -eq "upload"){
     If ($isLeaf){
         Try{
             # If a key-prefix is entered instead of a full key (including file name), append local file name to key for upload
-            If ($key[$key.length-1] -eq ("/" -Or "\")) {
+            If ($key[$key.length-1] -eq "/" -Or $key[$key.length-1] -eq "\") {
                 $basename = Split-Path $local -Leaf
                 Write-S3Object -BucketName $bucket -Key $key$basename -File $local
                 $result.changed = $true
@@ -176,7 +176,7 @@ If ($method -eq "upload"){
     # * When uploading an entire directory, the key specified must just be the key-prefix so that the file names will be appended
     ElseIf ($isContainer){
         Try {
-            If (-Not ($key[$key.length-1] -eq "/" -Or "\")){
+            If (-Not ($key[$key.length-1] -eq "/" -Or $key[$key.length-1] -eq "\")){
                 Fail-Json $result "Invalid key-prefix entered for uploading an entire directory. Example key: 'Path/To/Save/To/'"
             }
 
@@ -205,7 +205,7 @@ ElseIf ($method -eq "download"){
 # Download all files within an s3 key-prefix virtual directory
 ElseIf ($method -eq "download-dir"){
     Try{
-        If (-Not ($key[$key.length-1] -eq "/" -Or "\")){
+        If (-Not ($key[$key.length-1] -eq "/" -Or $key[$key.length-1] -eq "\")){
             Fail-Json $result "Invalid key-prefix entered for downloading an entire virt directory. Example key: 'Path/To/Save/To/'"
         }
 

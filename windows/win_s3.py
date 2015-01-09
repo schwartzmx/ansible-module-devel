@@ -49,7 +49,7 @@ options:
     aliases: []
   method:
     description:
-      - S3 method to carry out. Upload: upload file or entire directory to s3. Download: download a file from s3. Download-dir: Download entire virtual directory specified by s3 key-prefix.
+      - S3 method to carry out. Upload: upload file or entire directory to s3. Download: download a file or directory from s3.
     required: yes
     choices:
       - upload

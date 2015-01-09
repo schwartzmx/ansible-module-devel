@@ -103,7 +103,7 @@ If ($params.method) {
     $method = $params.method.toString()
 
     # Check for valid method
-    If (-Not ($method -eq "download" -Or $method -eq "upload" -Or $method -eq "download-dir")){
+    If (-Not ($method -eq "download" -Or $method -eq "upload")){
         Fail-Json $result "Invalid method parameter entered: $method"
     }
 }

@@ -213,6 +213,7 @@ ElseIf ($method -eq "download"){
         Catch {
             Fail-Json $result "Error downloading $bucket$key and saving as $local"
         }
+    }
     # Key prefix (downloading a directory)
     Else {
         Try{

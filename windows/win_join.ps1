@@ -21,7 +21,7 @@
 
 # Will use: Add-Computer
 # NOTE: Cannot have both Workgroup and Domain set.
-# Also specify action: unjoin to use -UnjoinDomainCredential, also this can only be used with Domain set and not Workgroup
+# Also specify action: unjoin to use -UnjoinDomainCredential, also this can only be used with Domain set and not Workgroup, "Use this parameter when you are moving computers to a different domain"
 # Also options (-Options <JoinOptions>) can only be set with Domain and not Workgroup
 # host (optional), can get current hostname and use that
 # domain (optional), people could want to just rename host

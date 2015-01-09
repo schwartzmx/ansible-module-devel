@@ -221,7 +221,7 @@ ElseIf ($method -eq "download"){
             $result.changed = $true
         }
         Catch {
-            Fail-Json $result "Error in downloading virtual dir $bucket$key and saving as $local.  Ensure the path exists."
+            Fail-Json $result "Error in downloading virtual dir $bucket$key and saving as $local.  Ensure the path exists and ensure credentials are authorized for access."
         }
     }
 }
@@ -233,6 +233,13 @@ Else {
 Set-Attr $result.win_s3 "bucket" $bucket.toString()
 Set-Attr $result.win_s3 "key" $key.toString()
 Set-Attr $result.win_s3 "method" $method.toString()
+
+# Fixes a fail error message (when the task actually succeeds) for a "Convert-ToJson: The converted JSON string is in bad format"
+# This happens when JSON is parsing a string that ends with a "\", which is possible when specifying a directory to download to.
+# This catches that possible error, before assigning the JSON $result
+If ($local[$local.length-1] -eq "\") {
+    $local = $local.Substring(0, $local.length-1)
+}
 Set-Attr $result.win_s3 "local" $local.toString()
 Set-Attr $result.win_s3 "rm" $rm.toString()
 

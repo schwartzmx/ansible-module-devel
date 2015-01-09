@@ -54,7 +54,6 @@ options:
     choices:
       - upload
       - download
-      - download-dir
     default: null
     aliases: []
   rm:
@@ -87,6 +86,8 @@ author: Phil Schwartz
 EXAMPLES = '''
 # Upload a local file to S3
 $ ansible -i hosts -m win_s3 -a "bucket=server_logs key=QA/WebServer/2015-1-1.App.log local=C:\inetpub\wwwroot\Logs\log.log method=upload rm=true access_key=EXAMPLE secret_key=EXAMPLE" all
+# Download an entire directory from S3
+$ ansible -i hosts -m win_s3 -a "bucket=apps key=My/Web/APP/ local=C:\Users\Me\WebApp method=download access_key=EXAMPLE secret_key=EXAMPLE" all
 
 # Playbook example
 ---

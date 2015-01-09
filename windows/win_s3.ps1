@@ -115,6 +115,7 @@ Else {
 If ($params.local) {
     $local = $params.local.toString()
 
+    # Only test upload because for download method the file is created on download only the path must exist
     If ($method -eq "upload"){
         If (Test-Path $local -PathType Leaf){
             $isLeaf = $true
@@ -125,6 +126,15 @@ If ($params.local) {
         Else{
             Fail-Json $result "Local file or directory: $local does not exist"
         }
+    }
+    # Test that the path to the basename exists, since the file or folder will be created on download
+    ElseIf ($method -eq "download") {
+        $dir = [IO.Path]::GetDirectoryName($local)
+
+        If (-Not (Test-Path $dir -PathType Container)){
+            Fail-Json $result "The path to the local file/directory to save to does not exist. Ensure $dir exists."
+        }
+
     }
 }
 Else {
@@ -194,26 +204,24 @@ If ($method -eq "upload"){
 }
 # Download file
 ElseIf ($method -eq "download"){
-    Try{
-        Read-S3Object -BucketName $bucket -Key $key -file $local
-        $result.changed = $true
-    }
-    Catch {
-        Fail-Json $result "Error downloading $bucket$key and saving as $local"
-    }
-}
-# Download all files within an s3 key-prefix virtual directory
-ElseIf ($method -eq "download-dir"){
-    Try{
-        If (-Not ($key[$key.length-1] -eq "/" -Or $key[$key.length-1] -eq "\")){
-            Fail-Json $result "Invalid key-prefix entered for downloading an entire virt directory. Example key: 'Key/To/Dwnld/From/'"
+    # If not a key prefix, then it's just a file
+    If (-Not ($key[$key.length-1] -eq "/" -Or $key[$key.length-1] -eq "\")){
+        Try{
+            Read-S3Object -BucketName $bucket -Key $key -file $local
+            $result.changed = $true
         }
-
-        Read-S3Object -BucketName $bucket -KeyPrefix $key -Folder $local
-        $result.changed = $true
-    }
-    Catch {
-        Fail-Json $result "Error in downloading virtual dir $bucket$key and saving as $local"
+        Catch {
+            Fail-Json $result "Error downloading $bucket$key and saving as $local"
+        }
+    # Key prefix (downloading a directory)
+    Else {
+        Try{
+            Read-S3Object -BucketName $bucket -KeyPrefix $key -Folder $local
+            $result.changed = $true
+        }
+        Catch {
+            Fail-Json $result "Error in downloading virtual dir $bucket$key and saving as $local.  Ensure the path exists."
+        }
     }
 }
 Else {

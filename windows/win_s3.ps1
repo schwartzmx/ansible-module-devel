@@ -135,6 +135,10 @@ If ($params.local) {
             Fail-Json $result "The path to the local file/directory to save to does not exist. Ensure $dir exists."
         }
 
+        If ($local[$local.length-1] -eq "/" -Or $local[$local.length-1] -eq "\") {
+            Fail-Json $result "When downloading a file/folder, please specify the save name of the file/folder as well as the valid path, for example: C:\Path\To\Save\To\NAME.zip or C:\Path\To\Save\DIRECTORYNAME"
+        }
+
     }
 }
 Else {
@@ -207,7 +211,7 @@ ElseIf ($method -eq "download"){
     # If not a key prefix, then it's just a file
     If (-Not ($key[$key.length-1] -eq "/" -Or $key[$key.length-1] -eq "\")){
         Try{
-            Read-S3Object -BucketName $bucket -Key $key -file $local
+            Read-S3Object -BucketName $bucket -Key $key -File $local
             $result.changed = $true
         }
         Catch {

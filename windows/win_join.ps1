@@ -73,11 +73,6 @@ Else {
     Fail-Json $result "Error with domain/workgroup params. Either both were found or neither were specified."
 }
 
-If ($params.server) {
-    $server = $params.server.toString()
-    Set-Attr $result.win_join "server" $server.toString()
-}
-
 If ($params.user -and $params.pass) {
     Try {
         $pass = $params.pass.toString() | ConvertTo-SecureString -asPlainText -Force
@@ -86,6 +81,11 @@ If ($params.user -and $params.pass) {
     Catch {
         Fail-Json $result "error creating PSCredential object from provided credentials, User: $user Password: $params.pass"
     }
+}
+
+If ($params.server) {
+    $server = $params.server.toString()
+    Set-Attr $result.win_join "server" $server.toString()
 }
 
 If ($params.options) {
@@ -104,16 +104,202 @@ If (($params.unsecure -eq "true") -or ($params.unsecure -eq "yes")) {
 }
 
 # Concat correct flags and options to Add-Computer command
+If ($host -and -Not ($user -and $pass)) {
+    Rename-Computer $host
+}
+ElseIf ($host -and $domain -and -Not($workgroup)){
+    If ($user -and $pass) {
+        If ($options){
+            If ($oupath) {
+                If ($server){
+                    # options, oupath, server, unsecure
+                    If ($unsecure) {
+
+                    }
+                    # options, oupath, server
+                    Else {
+
+                    }
+
+                }
+                # options, unsecure
+                ElseIf ($unsecure) {
 
 
+                }
+                # options, oupath
+                Else {
+
+                }
+
+            }
+            ElseIf ($unsecure) {
+                # options, unsecure, server
+                If ($server) {
+
+                }
+                # options, unsecure
+                Else {
+
+                }
+
+            }
+            # options,server
+            ElseIf ($server) {
+
+            }
+            # options
+            Else {
+
+            }
+
+        }
+        ElseIf ($oupath) {
+            If ($server) {
+                # oupath, server, unsecure
+                If ($unsecure){
 
 
+                }
+                # oupath, server
+                Else {
+
+                }
+            }
+            # oupath, unsecure
+            ElseIf ($unsecure) {
+
+            }
+            # oupath
+            Else {
+
+            }
+
+        }
+        ElseIf ($unsecure) {
+            # unsecure, server
+            If ($server){
+
+            }
+            # unsecure
+            Else {
+
+            }
+
+        }
+        # server
+        ElseIf ($server){
+
+        }
+        # user, pass
+        Else {
+
+        }
+
+    }
+    Else {
+        Fail-Json $result "missing a required argument for domain joining: user or pass"
+    }
+
+}
+ElseIf ($host -and $workgroup -and -Not($domain)){
+    If ($user -and $pass) {
+        If ($options){
+            If ($oupath) {
+                If ($server){
+                    # options, oupath, server, unsecure
+                    If ($unsecure) {
+
+                    }
+                    # options, oupath, server
+                    Else {
+
+                    }
+
+                }
+                # options, unsecure
+                ElseIf ($unsecure) {
 
 
+                }
+                # options, oupath
+                Else {
+
+                }
+
+            }
+            ElseIf ($unsecure) {
+                # options, unsecure, server
+                If ($server) {
+
+                }
+                # options, unsecure
+                Else {
+
+                }
+
+            }
+            # options,server
+            ElseIf ($server) {
+
+            }
+            # options
+            Else {
+
+            }
+
+        }
+        ElseIf ($oupath) {
+            If ($server) {
+                # oupath, server, unsecure
+                If ($unsecure){
 
 
+                }
+                # oupath, server
+                Else {
 
+                }
+            }
+            # oupath, unsecure
+            ElseIf ($unsecure) {
 
+            }
+            # oupath
+            Else {
+
+            }
+
+        }
+        ElseIf ($unsecure) {
+            # unsecure, server
+            If ($server){
+
+            }
+            # unsecure
+            Else {
+
+            }
+
+        }
+        # server
+        ElseIf ($server){
+
+        }
+        # user, pass
+        Else {
+
+        }
+
+    }
+    Else {
+        Fail-Json $result "missing a required argument for workgroup joining: user or pass"
+    }
+
+}
+Else {
+    Fail-Json $result "Domain and workgroup are mutually exclusive. Please enter one or the other, not both."
+}
 
 If (($params.restart -eq "true") -or ($params.restart -eq "yes")) {
     Restart-Computer -Force

@@ -138,7 +138,6 @@ If ($params.local) {
         If ($local[$local.length-1] -eq "/" -Or $local[$local.length-1] -eq "\") {
             Fail-Json $result "When downloading a file/folder, please specify the save name of the file/folder as well as the valid path, for example: C:\Path\To\Save\To\NAME.zip or C:\Path\To\Save\DIRECTORYNAME"
         }
-
     }
 }
 Else {

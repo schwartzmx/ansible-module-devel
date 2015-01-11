@@ -66,7 +66,7 @@ Catch {
     Fail-Json $result "Error importing module PSCX"
 }
 
-# Get Params (SRC, DEST, RM)
+# Get Params (SRC, DEST, TYPE, RM)
 # SRC
 If ($params.src) {
     $src = $params.src.toString()
@@ -75,6 +75,16 @@ If ($params.src) {
         $isLeaf = $true
     }
     ElseIf (Test-Path $src -PathType Container) {
+        $lastchar = $src[$src.length-1]
+        If (-Not ($lastchar -eq "/" -Or $lastchar -eq "\")) {
+            # figure out type of path delimiter provided
+            If ($src.split("\").length -eq 1) {
+                $src = $src + "/"
+            }
+            Else {
+                $src = $src + "\"
+            }
+        }
         $isContainer = $true
     }
     Else {
@@ -86,23 +96,6 @@ Else {
     Fail-Json $result "missing required argument: src"
 }
 
-# DEST
-If ($params.dest) {
-    $dest = $params.dest.toString()
-
-    If (Test-Path $dest -PathType Container) {
-        Fail-Json $result "Error in dest arg. Please provide the desired zip file name at the end of the path. (C:\Users\Path\Ex.zip)"
-    }
-
-
-    If (-Not ([System.IO.Path]::GetExtension($dest) -eq ".zip")) {
-        $dest = $dest + ".zip"
-    }
-
-}
-Else {
-    Fail-Json $result "missing required argument: dest"
-}
 
 #RM
 If ($params.rm -eq "true" -Or $params.rm -eq "yes"){
@@ -112,12 +105,81 @@ Else {
     $rm = $false
 }
 
-# Zip
+#TYPE
+If ($params.type -eq "bzip" -Or $params.type -eq "tar" -Or $params.type -eq "gzip") {
+    $type = $params.type.toString()
+}
+Else {
+    $type = "zip"
+}
+
+# DEST
+If ($params.dest) {
+    $dest = $params.dest.toString()
+
+    If (Test-Path $dest -PathType Container -and ($type -eq "zip" -Or $type -eq "tar")) {
+        Fail-Json $result "Error in dest arg. Please provide the desired zip/tar file name at the end of the path. (C:\Users\Path\Ex.zip)"
+    }
+
+    $ext = [System.IO.Path]::GetExtension($dest)
+    If (-Not ( $ext -eq ".zip" -Or $ext -eq ".tar")) {
+        If ($type -eq "tar") {
+            $dest = $dest + ".tar"
+        }
+        ElseIf ($type -eq "zip") {
+            $dest = $dest + ".zip"
+        }
+    }
+    ElseIf ($isLeaf -And -Not(Test-Path $dest -PathType Container) -And ($type -eq "bzip" -Or $type -eq "gzip")){
+        If ($type -eq "bzip" -And $ext -ne ".bz2") {
+            $dest = $dest + ".bz"
+        }
+        ElseIf ($type -eq "gzip" -And $ext -ne ".gz") {
+            $dest = $dest + ".gz"
+        }
+
+    }
+
+}
+Else {
+    Fail-Json $result "missing required argument: dest"
+}
+
+# Compress
 Try {
-    # On success Write-Zip writes to std-out. This is the reason for piping to out-null (And also b/c their -Quiet switch won't work).
-    # This allows for the try-catch to still catch errors, but not fail on success output.
-    Write-Zip -Path $src -OutputPath $dest -Level 9 -IncludeEmptyDirectories | out-null
-    $result.changed = $true
+    If ($type -eq "zip") {
+        # On success Write-Zip writes to std-out. This is the reason for piping to out-null (And also b/c their -Quiet switch won't work).
+        # This allows for the try-catch to still catch errors, but not fail on success output.
+        Write-Zip -Path $src -OutputPath $dest -Level 9 -IncludeEmptyDirectories | out-null
+        $result.changed = $true
+    }
+    ElseIf ($type -eq "bzip") {
+        Write-BZip2 -Path $src | out-null
+        If ($isLeaf) {
+            Move-Item -Path $src".bz2" -Destination $dest
+        }
+        ElseIf ($isContainer) {
+            Move-Item -Path $src"*.bz2" -Destination $dest
+        }
+
+        $result.changed = $true
+    }
+    ElseIf ($type -eq "tar") {
+        Write-Tar -Path $src -OutputPath $dest | out-null
+        $result.changed = $true
+    }
+    ElseIf ($type -eq "gzip") {
+        Write-GZip -Path $src | out-null
+        If ($isLeaf) {
+            Move-Item -Path $src".gz" -Destination $dest
+        }
+        ElseIf ($isContainer) {
+            Move-Item -Path $src"*.gz" -Destination $dest
+        }
+    }
+    Else {
+        Fail-Json $result "An error occured when checking param: type for compression creation"
+    }
 
     If ($rm){
         Try {
@@ -135,7 +197,7 @@ Catch {
         Fail-Json $result "Directory: $directory does not exist in the dest provided."
     }
     Else {
-        Fail-Json $result "Error zipping $src to $dest."
+        Fail-Json $result "Error compressing $src to $dest."
     }
 }
 

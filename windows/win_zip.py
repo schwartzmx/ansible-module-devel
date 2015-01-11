@@ -41,6 +41,17 @@ options:
     required: true
     default: null
     aliases: []
+  type:
+    description:
+      - Type of compression method to use.
+    required: false
+    default: zip
+    choices:
+      - zip
+      - bzip
+      - tar
+      - gzip
+    aliases: []
   rm:
     description:
       - Remove the (unzipped) src file, after zipping

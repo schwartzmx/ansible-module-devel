@@ -117,7 +117,7 @@ Else {
 If ($params.dest) {
     $dest = $params.dest.toString()
 
-    If (Test-Path $dest -PathType Container -and ($type -eq "zip" -Or $type -eq "tar")) {
+    If ((Test-Path $dest -PathType Container) -And ($type -eq "zip" -Or $type -eq "tar")) {
         Fail-Json $result "Error in dest arg. Please provide the desired zip/tar file name at the end of the path. (C:\Users\Path\Ex.zip)"
     }
 
@@ -204,6 +204,7 @@ Catch {
 Set-Attr $result.win_zip "src" $src.toString()
 Set-Attr $result.win_zip "dest" $dest.toString()
 Set-Attr $result.win_zip "rm" $rm.toString()
+Set-Attr $result.win_zip "type" $type.toString()
 
 Exit-Json $result;
 

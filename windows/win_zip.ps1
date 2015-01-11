@@ -64,6 +64,7 @@ If (-Not ($list -match "PSCX")) {
         }
     }
     Set-Attr $result.win_zip "pscx_status" "pscx was installed"
+    $installed = $true
 }
 Else {
     Set-Attr $result.win_zip "pscx_status" "present"
@@ -71,7 +72,12 @@ Else {
 
 # Import
 Try {
-    Import-Module PSCX
+    If ($installed) {
+        Import-Module 'C:\Program Files (x86)\Powershell Community Extensions\pscx3\pscx\pscx.psd1'
+    }
+    Else {
+        Import-Module PSCX
+    }
 }
 Catch {
     Fail-Json $result "Error importing module PSCX"

@@ -154,12 +154,13 @@ Try {
         $result.changed = $true
     }
     ElseIf ($type -eq "bzip") {
-        Write-BZip2 -Path $src | out-null
         If ($isLeaf) {
+            Write-BZip2 -Path $src | out-null
             Move-Item -Path $src".bz2" -Destination $dest
         }
         ElseIf ($isContainer) {
-            Move-Item -Path $src"*.bz2" -Destination $dest
+            Get-ChildItem $src -Recurse | Write-BZip2 | out-null
+            Get-ChildItem $src"*.bz2" -Recurse | Move-Item -Destination $dest
         }
 
         $result.changed = $true
@@ -169,13 +170,16 @@ Try {
         $result.changed = $true
     }
     ElseIf ($type -eq "gzip") {
-        Write-GZip -Path $src | out-null
         If ($isLeaf) {
+            Write-GZip -Path $src | out-null
             Move-Item -Path $src".gz" -Destination $dest
         }
         ElseIf ($isContainer) {
-            Move-Item -Path $src"*.gz" -Destination $dest
+            Get-ChildItem $src -Recurse | Write-Gzip | out-null
+            Get-ChildItem $src"*.gz" -Recurse | Move-Item -Destination $dest
         }
+
+        $result.changed = $true
     }
     Else {
         Fail-Json $result "An error occured when checking param: type for compression creation"
@@ -201,6 +205,15 @@ Catch {
     }
 }
 
+# Fixes a fail error message (when the task actually succeeds) for a "Convert-ToJson: The converted JSON string is in bad format"
+# This happens when JSON is parsing a string that ends with a "\", which is possible when specifying a directory to download to.
+# This catches that possible error, before assigning the JSON $result
+If ($src[$src.length-1] -eq "\") {
+    $src = $src.Substring(0, $src.length-1)
+}
+If ($dest[$dest.length-1] -eq "\") {
+    $dest = $dest.Substring(0, $dest.length-1)
+}
 Set-Attr $result.win_zip "src" $src.toString()
 Set-Attr $result.win_zip "dest" $dest.toString()
 Set-Attr $result.win_zip "rm" $rm.toString()

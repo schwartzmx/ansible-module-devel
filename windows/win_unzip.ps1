@@ -27,7 +27,7 @@ $result = New-Object psobject @{
 }
 
 If ($params.src) {
-    $src = $params.zip.toString()
+    $src = $params.src.toString()
 
     If (-Not (Test-Path -path $src)){
         Fail-Json $result "src file: $src does not exist."
@@ -36,7 +36,7 @@ If ($params.src) {
     $ext = [System.IO.Path]::GetExtension($dest)
 }
 Else {
-    Fail-Json $result "missing required argument: zip"
+    Fail-Json $result "missing required argument: src"
 }
 
 If (-Not($params.dest -eq $null)) {
@@ -77,7 +77,7 @@ Else {
     # Requires PSCX, will be installed if it isn't found
     # Pscx-3.2.0.msi
     $url = "http://download-codeplex.sec.s-msft.com/Download/Release?ProjectName=pscx&DownloadId=923562&FileTime=130585918034470000&Build=20959"
-    $dest = "C:\Pscx-3.2.0.msi"
+    $msi = "C:\Pscx-3.2.0.msi"
 
     # Check if PSCX is installed
     $list = Get-Module -ListAvailable
@@ -95,18 +95,18 @@ Else {
         If ($choco -eq $false) {
             Try {
                 $client = New-Object System.Net.WebClient
-                $client.DownloadFile($url, $dest)
+                $client.DownloadFile($url, $msi)
             }
             Catch {
                 Fail-Json $result "Error downloading PSCX from $url and saving as $dest"
             }
             Try {
-                msiexec.exe /i $dest /qb
+                msiexec.exe /i $msi /qb
                 # Give it a chance to install, so that it can be imported
                 sleep 10
             }
             Catch {
-                Fail-Json $result "Error installing $dest"
+                Fail-Json $result "Error installing $msi"
             }
         }
         Set-Attr $result.win_zip "pscx_status" "pscx was installed"

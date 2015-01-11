@@ -26,12 +26,14 @@ $result = New-Object psobject @{
     changed = $false
 }
 
-If ($params.zip) {
-    $zip = $params.zip.toString()
+If ($params.src) {
+    $src = $params.zip.toString()
 
-    If (-Not (Test-Path -path $zip)){
-        Fail-Json $result "zip file: $zip does not exist."
+    If (-Not (Test-Path -path $src)){
+        Fail-Json $result "src file: $src does not exist."
     }
+
+    $ext = [System.IO.Path]::GetExtension($dest)
 }
 Else {
     Fail-Json $result "missing required argument: zip"
@@ -53,22 +55,103 @@ Else {
     Fail-Json $result "missing required argument: dest"
 }
 
-Try {
-    $shell = New-Object -ComObject Shell.Application
-    $shell.NameSpace($dest).copyhere(($shell.NameSpace($zip)).items(), 20)
-    $result.changed = $true
+If ($params.recurse -eq "true" -Or $params.recurse -eq "yes") {
+    $recurse = $true
 }
-Catch {
-    # Used to allow reboot after exe hotfix extraction (Windows 2008 R2 SP1)
-    # This will have no effect in most cases.
-    If (-Not ([System.IO.Path]::GetExtension($zip) -match ".exe")){
-        $result.changed = $false
-        Fail-Json $result "Error unzipping $zip to $dest"
+Else {
+    $recurse = $false
+}
+
+If ($ext -eq ".zip" -And $recurse -eq $false) {
+    Try {
+        $shell = New-Object -ComObject Shell.Application
+        $shell.NameSpace($dest).copyhere(($shell.NameSpace($src)).items(), 20)
+        $result.changed = $true
+    }
+    Catch {
+        Fail-Json $result "Error unzipping $src to $dest"
+    }
+}
+# Need PSCX
+Else {
+    # Requires PSCX, will be installed if it isn't found
+    # Pscx-3.2.0.msi
+    $url = "http://download-codeplex.sec.s-msft.com/Download/Release?ProjectName=pscx&DownloadId=923562&FileTime=130585918034470000&Build=20959"
+    $dest = "C:\Pscx-3.2.0.msi"
+
+    # Check if PSCX is installed
+    $list = Get-Module -ListAvailable
+    # If not download it and install
+    If (-Not ($list -match "PSCX")) {
+        # Try install with chocolatey
+        Try {
+            cinst -force PSCX
+            $choco = $true
+        }
+        Catch {
+            $choco = $false
+        }
+        # install from downloaded msi if choco failed or is not present
+        If ($choco -eq $false) {
+            Try {
+                $client = New-Object System.Net.WebClient
+                $client.DownloadFile($url, $dest)
+            }
+            Catch {
+                Fail-Json $result "Error downloading PSCX from $url and saving as $dest"
+            }
+            Try {
+                msiexec.exe /i $dest /qb
+                # Give it a chance to install, so that it can be imported
+                sleep 10
+            }
+            Catch {
+                Fail-Json $result "Error installing $dest"
+            }
+        }
+        Set-Attr $result.win_zip "pscx_status" "pscx was installed"
+        $installed = $true
+    }
+    Else {
+        Set-Attr $result.win_zip "pscx_status" "present"
+    }
+
+    # Import
+    Try {
+        If ($installed) {
+            Import-Module 'C:\Program Files (x86)\Powershell Community Extensions\pscx3\pscx\pscx.psd1'
+        }
+        Else {
+            Import-Module PSCX
+        }
+    }
+    Catch {
+        Fail-Json $result "Error importing module PSCX"
+    }
+
+    Try {
+        If ($recurse) {
+            # Since piping won't work because of the way Read-Archive returns, for each and use Expand-Archive.
+            ForEach ($elem In (Read-Archive $src -IncludeDirectories)) {
+                Expand-Archive $elem -OutputPath $dest -Force
+            }
+        }
+        Else {
+            Expand-Archive -Path $src -OutputPath $dest -Force
+        }
+    }
+    Catch {
+        If ($recurse) {
+            Fail-Json "Error recursively expanding $src to $dest"
+        }
+        Else {
+            Fail-Json "Error expanding $src to $dest"
+        }
     }
 }
 
 If ($params.rm -eq "true" -Or $params.rm -eq "yes"){
-    Remove-Item $zip -Recurse -Force
+    Remove-Item $src -Recurse -Force
     Set-Attr $result.win_unzip "rm" "true"
 }
 
@@ -78,7 +161,8 @@ If ($params.restart -eq "true" -Or $params.restart -eq "yes") {
 }
 
 
-Set-Attr $result.win_unzip "zip" $zip.toString()
+Set-Attr $result.win_unzip "src" $zip.toString()
 Set-Attr $result.win_unzip "dest" $dest.toString()
+Set-Attr %result.win_unzip "recurse" $recurse.toString()
 
 Exit-Json $result;

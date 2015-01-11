@@ -177,8 +177,16 @@ If ($params.restart -eq "true" -Or $params.restart -eq "yes") {
     Set-Attr $result.win_unzip "restart" "true"
 }
 
-
-Set-Attr $result.win_unzip "src" $zip.toString()
+# Fixes a fail error message (when the task actually succeeds) for a "Convert-ToJson: The converted JSON string is in bad format"
+# This happens when JSON is parsing a string that ends with a "\", which is possible when specifying a directory to download to.
+# This catches that possible error, before assigning the JSON $result
+If ($src[$src.length-1] -eq "\") {
+    $src = $src.Substring(0, $src.length-1)
+}
+If ($dest[$dest.length-1] -eq "\") {
+    $dest = $dest.Substring(0, $dest.length-1)
+}
+Set-Attr $result.win_unzip "src" $src.toString()
 Set-Attr $result.win_unzip "dest" $dest.toString()
 Set-Attr $result.win_unzip "recurse" $recurse.toString()
 

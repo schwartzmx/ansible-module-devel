@@ -134,7 +134,7 @@ Else {
             Expand-Archive -Path $src -OutputPath $dest -Force
 
             # Since piping won't work because of the way Read-Archive returns, for each and use Expand-Archive.
-            ForEach ($elem In (Read-Archive $src -IncludeDirectories)) {
+            ForEach ($elem In (Read-Archive $src)) {
                 Expand-Archive $elem -OutputPath $dest -Force
             }
         }

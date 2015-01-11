@@ -69,8 +69,10 @@ author: Phil Schwartz
 EXAMPLES = '''
 # Zips directory on Windows Host and saves as SRC.zip
 $ ansible -i hosts -m win_zip -a "src=C:\\Users\Administrator\SRC dest=C:\\Users\Administrator\SRC.zip rm=true" all
-# Zips a file on Windows Host and saves as test.txt.zip
-$ ansible -i hosts -m win_zip -a "src=C:\\Users\Phil\xfile.txt dest=C:\\xfile" all
+# Zips a file on Windows Host and saves as xfile.txt.zip
+$ ansible -i hosts -m win_zip -a "src=C:\\Users\Phil\xfile.txt dest=C:\\xfile.txt" all
+# BZip all files in a directory, and move them all into a new directory, and removes all files within the src folder
+$ ansible -i hosts -m win_zip -a "src=C:\\Logs\ dest=C:\\UploadFolder type=bzip rm=true"
 # Playbook example
 ---
 - name: Zip Logs
@@ -82,4 +84,21 @@ $ ansible -i hosts -m win_zip -a "src=C:\\Users\Phil\xfile.txt dest=C:\\xfile" a
       src: 'C:\\inetpub\wwwroot\Logs'
       dest: 'C:\\Logs\1-1-15.ServerLogs.zip'
       rm: true
+
+
+---
+- name: Tar a folder, and then GZip the Tar
+  hosts: all
+  tasks:
+    - name: Tar folder
+      win_zip:
+        src: C:\\folder\\to\\tar
+        dest: C:\\TA.tar
+        type: tar
+
+    - name: GZip Tatar
+      win_zip:
+        src: C:\\TA.tar
+        dest: C:\\Totz.gz
+        type: gzip
 '''

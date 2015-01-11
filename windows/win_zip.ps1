@@ -47,7 +47,7 @@ If (-Not ($list -match "PSCX")) {
     Catch {
         $choco = $false
     }
-    # install from downloaded msi if choco failed
+    # install from downloaded msi if choco failed or is not present
     If ($choco -eq $false) {
         Try {
             $client = New-Object System.Net.WebClient
@@ -58,6 +58,8 @@ If (-Not ($list -match "PSCX")) {
         }
         Try {
             msiexec.exe /i $dest /qb
+            # Give it a chance to install, so that it can be imported
+            sleep 10
         }
         Catch {
             Fail-Json $result "Error installing $dest"

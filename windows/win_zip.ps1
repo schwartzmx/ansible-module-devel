@@ -39,18 +39,29 @@ $isContainer = $false
 $list = Get-Module -ListAvailable
 # If not download it and install
 If (-Not ($list -match "PSCX")) {
+    # Try install with chocolatey
     Try {
-        $client = New-Object System.Net.WebClient
-        $client.DownloadFile($url, $dest)
+        cinst -force PSCX
+        $choco = $true
     }
     Catch {
-        Fail-Json $result "Error downloading PSCX from $url and saving as $dest"
+        $choco = $false
     }
-    Try {
-        msiexec.exe /i $dest /qb
-    }
-    Catch {
-        Fail-Json $result "Error installing $dest"
+    # install from downloaded msi if choco failed
+    If ($choco -eq $false) {
+        Try {
+            $client = New-Object System.Net.WebClient
+            $client.DownloadFile($url, $dest)
+        }
+        Catch {
+            Fail-Json $result "Error downloading PSCX from $url and saving as $dest"
+        }
+        Try {
+            msiexec.exe /i $dest /qb
+        }
+        Catch {
+            Fail-Json $result "Error installing $dest"
+        }
     }
     Set-Attr $result.win_zip "pscx_status" "pscx was installed"
 }

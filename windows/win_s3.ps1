@@ -47,6 +47,8 @@ If (-Not ($list -match "AWSPowerShell")){
     }
     Try{
         msiexec.exe /i $sdkdest /qb
+        # Give it a chance to install, so that it can be imported
+        sleep 10
     }
     Catch {
         Fail-Json $result "Error installing $sdkdest"

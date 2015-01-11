@@ -5,7 +5,7 @@ This is where my work on ansible modules will be done before submitting PRs to h
 
 #####Current module dev:
 - Windows
-  - `win_join`
+  - `win_host`
     - host renaming and domain joining
   - `win_s3`
     - download/upload to aws_s3

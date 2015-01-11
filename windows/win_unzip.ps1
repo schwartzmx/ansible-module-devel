@@ -133,9 +133,8 @@ Else {
         If ($recurse) {
             Expand-Archive -Path $src -OutputPath $dest -Force
 
-            # Since piping won't work because of the way Read-Archive returns, for each and use Expand-Archive.
-            ForEach ($elem In (Read-Archive $src)) {
-                Expand-Archive $elem -OutputPath $dest -Force
+            Get-ChildItem $dest -recurse | Where {$_.extension -eq ".gz" -Or $_.extension -eq ".zip" -Or $_.extension -eq ".bz2" -Or $_.extension -eq ".tar"} | % {
+                Expand-Archive $_.FullName -OutputPath [System.IO.Path]::GetDirectoryName($_.FullName) -Force
             }
         }
         Else {

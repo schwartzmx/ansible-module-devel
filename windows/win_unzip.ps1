@@ -142,16 +142,14 @@ Else {
             Expand-Archive -Path $src -OutputPath $dest -Force
 
             If ($rm) {
-                Get-ChildItem $dest -recurse | Where {$_.extension -eq ".gz" -Or $_.extension -eq ".zip" -Or $_.extension -eq ".bz2" -Or $_.extension -eq ".tar"} | % {
-                    $dir = [System.IO.Path]::GetDirectoryName($_.FullName)
-                    Expand-Archive $_.FullName -OutputPath $dir  -Force
+                Get-ChildItem $dest -recurse | Where {$_.extension -eq ".gz" -Or $_.extension -eq ".zip" -Or $_.extension -eq ".bz2" -Or $_.extension -eq ".tar" -Or $_.extension -eq ".msu"} | % {
+                    Expand-Archive $_.FullName -OutputPath $dest  -Force
                     Remove-Item $_.FullName -Force
                 }
             }
             Else {
-                Get-ChildItem $dest -recurse | Where {$_.extension -eq ".gz" -Or $_.extension -eq ".zip" -Or $_.extension -eq ".bz2" -Or $_.extension -eq ".tar"} | % {
-                    $dir = [System.IO.Path]::GetDirectoryName($_.FullName)
-                    Expand-Archive $_.FullName -OutputPath $dir  -Force
+                Get-ChildItem $dest -recurse | Where {$_.extension -eq ".gz" -Or $_.extension -eq ".zip" -Or $_.extension -eq ".bz2" -Or $_.extension -eq ".tar" -Or $_.extension -eq ".msu"} | % {
+                    Expand-Archive $_.FullName -OutputPath $dest  -Force
                 }
             }
         }
@@ -182,6 +180,6 @@ If ($params.restart -eq "true" -Or $params.restart -eq "yes") {
 
 Set-Attr $result.win_unzip "src" $zip.toString()
 Set-Attr $result.win_unzip "dest" $dest.toString()
-Set-Attr %result.win_unzip "recurse" $recurse.toString()
+Set-Attr $result.win_unzip "recurse" $recurse.toString()
 
 Exit-Json $result;

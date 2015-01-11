@@ -79,14 +79,30 @@ author: Phil Schwartz
 
 EXAMPLES = '''
 # This unzips a library that was downloaded with win_get_url, and removes the file after extraction
-$ ansible -i hosts -m win_unzip -a "zip=C:\\LibraryToUnzip.zip dest=C:\\Lib rm=true" all
+$ ansible -i hosts -m win_unzip -a "src=C:\\LibraryToUnzip.zip dest=C:\\Lib rm=true" all
 # Playbook example
+
+# Simple unzip
 ---
 - name: Unzip a bz2 (BZip) file
   win_unzip:
     src: "C:\Users\Phil\Logs.bz2"
     dest: "C:\Users\Phil\OldLogs"
 
+# This playbook example unzips a .zip file and recursively decompresses the contained .gz files and removes all unneeded compressed files after completion.
+---
+- name: Unzip ApplicationLogs.zip and decompress all GZipped log files
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Recursively decompress GZ files in ApplicationLogs.zip
+      win_unzip:
+        src: C:\Downloads\ApplicationLogs.zip
+        dest: C:\Application\Logs
+        recurse: yes
+        rm: true
+
+# Install hotfix (self-extracting .exe)
 ---
 - name: Install WinRM PowerShell Hotfix for Windows Server 2008 SP1
   hosts: all
@@ -98,7 +114,7 @@ $ ansible -i hosts -m win_unzip -a "zip=C:\\LibraryToUnzip.zip dest=C:\\Lib rm=t
       dest: 'C:\\463984_intl_x64_zip.exe'
   - name: Unzip hotfix
     win_unzip:
-      zip: "C:\\463984_intl_x64_zip.exe"
+      src: "C:\\463984_intl_x64_zip.exe"
       dest: "C:\\Hotfix"
       recurse: true
       restart: true

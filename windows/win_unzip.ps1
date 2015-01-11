@@ -62,6 +62,14 @@ Else {
     $recurse = $false
 }
 
+If ($params.rm -eq "true" -Or $params.rm -eq "yes"){
+    $rm = $true
+    Set-Attr $result.win_unzip "rm" "true"
+}
+Else {
+    $rm = $false
+}
+
 If ($ext -eq ".zip" -And $recurse -eq $false) {
     Try {
         $shell = New-Object -ComObject Shell.Application
@@ -133,8 +141,18 @@ Else {
         If ($recurse) {
             Expand-Archive -Path $src -OutputPath $dest -Force
 
-            Get-ChildItem $dest -recurse | Where {$_.extension -eq ".gz" -Or $_.extension -eq ".zip" -Or $_.extension -eq ".bz2" -Or $_.extension -eq ".tar"} | % {
-                Expand-Archive $_.FullName -OutputPath [System.IO.Path]::GetDirectoryName($_.FullName) -Force
+            If ($rm) {
+                Get-ChildItem $dest -recurse | Where {$_.extension -eq ".gz" -Or $_.extension -eq ".zip" -Or $_.extension -eq ".bz2" -Or $_.extension -eq ".tar"} | % {
+                    $dir = [System.IO.Path]::GetDirectoryName($_.FullName)
+                    Expand-Archive $_.FullName -OutputPath $dir  -Force
+                    Remove-Item $_.FullName -Force
+                }
+            }
+            Else {
+                Get-ChildItem $dest -recurse | Where {$_.extension -eq ".gz" -Or $_.extension -eq ".zip" -Or $_.extension -eq ".bz2" -Or $_.extension -eq ".tar"} | % {
+                    $dir = [System.IO.Path]::GetDirectoryName($_.FullName)
+                    Expand-Archive $_.FullName -OutputPath $dir  -Force
+                }
             }
         }
         Else {
@@ -151,7 +169,7 @@ Else {
     }
 }
 
-If ($params.rm -eq "true" -Or $params.rm -eq "yes"){
+If ($rm -eq $true){
     Remove-Item $src -Recurse -Force
     Set-Attr $result.win_unzip "rm" "true"
 }

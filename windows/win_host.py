@@ -35,6 +35,15 @@ options:
     required: false
     default: current nodes hostname
     aliases: []
+  state:
+    description:
+      - Specify whether to join or unjoin
+    required: true
+    choices:
+      - present
+      - absent
+    default: none
+    aliases: []
   domain:
     description:
       - Domain name to join/unjoin
@@ -65,6 +74,40 @@ options:
     required: no
     default: none
     aliases: []
+  timezone:
+    description:
+      - Timezone to set host to Ex. Central Standard Time
+    required: no
+    default: none
+    aliases: []
+  options:
+    description:
+      - Single or comma separated list of options (AccountCreate, Win9XUpgrade, UnsecuredJoin, PasswordPass, JoinWithNewName, JoinReadOnly, InstallInvoke)
+    required: no
+    default: none
+    aliases: []
+  oupath:
+    description:
+      - Specifies an organizational unit for the domain account
+    required: no
+    default: none
+    aliases: []
+  restart:
+    description:
+      - Restart the host after completion
+    required: no
+    choices:
+      - true
+      - yes
+      - false
+      - no
+    default: false
+    aliases: []
+  unsecure:
+    description:
+      - Perform an unsecure join, or unjoin.
+
+
 
 
 author: Phil Schwartz

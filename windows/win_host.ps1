@@ -48,6 +48,10 @@ $result = New-Object psobject @{
     changed = $false
 }
 
+If ($PSVersionTable.PSVersion.Major -lt 4) {
+    Fail-Json $result "Module win_host requires Powershell 4.0 or greater."
+}
+
 If ($params.timezone) {
     Try {
         C:\Windows\System32\tzutil /s $params.timezone.toString()

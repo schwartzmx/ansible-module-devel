@@ -106,6 +106,14 @@ options:
   unsecure:
     description:
       - Perform an unsecure join, or unjoin.
+    required: no
+    choices:
+      - true
+      - yes
+      - false
+      - no
+    default: false
+    aliases: []
 
 
 

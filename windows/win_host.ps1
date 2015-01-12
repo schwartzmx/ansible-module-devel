@@ -90,7 +90,7 @@ If ($params.domain -and (-Not($params.workgroup))) {
         Set-Attr $result.win_host "oupath" $oupath.toString()
     }
     Else {
-    $   oupath = ""
+        $oupath = ""
     }
 
     If (($params.unsecure -eq "true") -or ($params.unsecure -eq "yes")) {

@@ -19,24 +19,6 @@
 # WANT_JSON
 # POWERSHELL_COMMON
 
-# Will use: Add-Computer and Remove-Computer
-# NOTE: Cannot have both Workgroup and Domain set.
-# Also specify state: to either join or unjoin
-# options (-Options <JoinOptions>) can only be set with Domain and not Workgroup
-# hostname (optional), can get current hostname and use that
-# domain (optional), people could want to just rename hostname
-# server (optional), specify name of a domain controller, default none
-# user (optional) required if adding to domain
-# pass (optional) required if adding to domain
-# timezone (optional), could keep as is.  Determine how we should accept input,  Central Standard Time or CST (also case sensitive?)
-# options (optional), Join options Ex. -Options "One, Or, More, Values"
-# oupath (optional), Specifies an organizational unit for the domain account
-# restart (optional), default not
-# unsecure (optional), unsecure join (use -UnjoinDomainCredential instead of Local or Credential)
-# workgroup (optional), default WORKGROUP
-# -FORCE may be required to supresss user confirmation prompt
-# MAYBE USE -WhatIf to test if command would pass or fail, then run.
-
 $restart = $false
 $domain = $false
 $workgroup = $false

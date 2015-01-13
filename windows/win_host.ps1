@@ -52,6 +52,12 @@ If ($params.hostname) {
 # None entered? Use current hostname
 Else {
     $hostname = [System.Net.Dns]::GetHostName()
+    Set-Attr $result.win_host "hostname" $hostname.toString()
+    $computername = "-ComputerName '$hostname'"
+
+    If ($hostname.length -eq 1) {
+        $newname = "-NewName '$hostname'"
+    }
 }
 
 If ($params.domain) {

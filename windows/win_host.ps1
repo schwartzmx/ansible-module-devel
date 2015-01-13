@@ -159,9 +159,9 @@ ElseIf ($hostname -and $domain){
                     If ($newname) {
                         $computername = $newname
                     }
-                    #$cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) -Force"
-                    #Invoke-Expression $cmd
-                    $cmd = "Add-Computer $computername $workgroup $domain $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) $server $options $oupath $unsecure -Force"
+                    $cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) -Force"
+                    Invoke-Expression $cmd
+                    $cmd = "Add-Computer $computername $domain $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) $server $options $oupath $unsecure -Force"
                     Invoke-Expression $cmd
                     $result.changed = $true
                 }

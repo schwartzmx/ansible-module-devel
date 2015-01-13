@@ -48,18 +48,18 @@ If ($params.timezone) {
 If ($params.hostname) {
     $hostname = $params.hostname.toString().split(",")
     Set-Attr $result.win_host "hostname" $hostname.toString()
-    $computername = "-ComputerName $hostname"
+    $computername = "-ComputerName '$hostname'"
 }
 
 If ($params.domain -and (-Not($params.workgroup))) {
     $domain = $params.domain.toString()
     Set-Attr $result.win_host "domain" $domain
-    $domain = "-DomainName $domain"
+    $domain = "-DomainName '$domain'"
 
     If ($params.server) {
         $server = $params.server.toString()
         Set-Attr $result.win_host "server" $server
-        $server = "-Server $server"
+        $server = "-Server '$server'"
     }
     Else {
         $server = ""
@@ -68,7 +68,7 @@ If ($params.domain -and (-Not($params.workgroup))) {
     If ($params.options) {
         $options = $params.options.toString()
         Set-Attr $result.win_host "options" $options
-        $options = "-Options $options"
+        $options = "-Options '$options'"
     }
     Else {
         $options = ""
@@ -77,7 +77,7 @@ If ($params.domain -and (-Not($params.workgroup))) {
     If ($params.oupath) {
         $oupath = $params.oupath.toString()
         Set-Attr $result.win_host "oupath" $oupath
-        $oupath = "-OUPath $oupath"
+        $oupath = "-OUPath '$oupath'"
     }
     Else {
         $oupath = ""
@@ -86,7 +86,7 @@ If ($params.domain -and (-Not($params.workgroup))) {
     If (($params.unsecure -eq "true") -or ($params.unsecure -eq "yes")) {
         $unsecure = $params.unsecure.toString()
         Set-Attr $result.win_host "unsecure" $unsecure
-        $unsecure = "-Unsecure $unsecure"
+        $unsecure = "-Unsecure"
     }
     Else {
         $unsecure = ""
@@ -96,17 +96,16 @@ If ($params.domain -and (-Not($params.workgroup))) {
 If ($params.workgroup -and (-Not($params.domain))) {
     $workgroup = $params.workgroup.toString()
     Set-Attr $result.win_host "workgroup" $workgroup
-    $workgroup = "-WorkgroupName $workgroup"
+    $workgroup = "-WorkgroupName '$workgroup'"
 }
 
 If ($params.user -and $params.pass) {
     Try {
         $user = $params.user.toString()
         $pass = $params.pass.toString()
-        $spass = $pass | ConvertTo-SecureString -asPlainText -Force
-        $creds = New-Object System.Management.Automation.PSCredential($user, $spass)
-        $credential = "-Credential $creds"
-        $unjoincredential = "-UnjoinDomainCredential $creds"
+        $pass = $pass | ConvertTo-SecureString -asPlainText -Force
+        $credential = "-Credential"
+        $unjoincredential = "-UnjoinDomainCredential"
     }
     Catch {
         Fail-Json $result "error creating PSCredential object from provided credentials, User: $user Password: $pass"
@@ -144,7 +143,7 @@ ElseIf ($hostname -and $domain){
     If ($credential) {
         If ($state) {
             Try{
-                $cmd = "Add-Computer $computername $domain $credential $server $options $oupath $unsecure $restart -Force"
+                $cmd = "Add-Computer $computername $domain $credential (New-Object System.Management.Automation.PSCredential '$user', '$pass') $server $options $oupath $unsecure $restart -Force"
                 Invoke-Expression $cmd
                 $result.changed = $true
             }
@@ -154,7 +153,7 @@ ElseIf ($hostname -and $domain){
         }
         ElseIf (-Not $state) {
             Try {
-                $cmd = "Remove-Computer $computername $unjoincredential $restart -Force"
+                $cmd = "Remove-Computer $computername $unjoincredential (New-Object System.Management.Automation.PSCredential '$user', '$pass') $restart -Force"
                 Invoke-Expression $cmd
                 $result.changed = $true
             }
@@ -175,7 +174,7 @@ ElseIf ($hostname -and $workgroup){
     If ($credential) {
         If ($state) {
             Try{
-                $cmd = "Add-Computer $computername $workgroup $credential $restart -Force"
+                $cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential '$user', '$pass') $restart -Force"
                 Invoke-Expression $cmd
                 $result.changed = $true
             }
@@ -185,7 +184,7 @@ ElseIf ($hostname -and $workgroup){
         }
         ElseIf (-Not $state) {
             Try {
-                $cmd = "Remove-Computer $computername $workgroup $unjoincredential $restart -Force"
+                $cmd = "Remove-Computer $computername $workgroup $unjoincredential (New-Object System.Management.Automation.PSCredential '$user', '$pass') $restart -Force"
                 Invoke-Expression $cmd
                 $result.changed = $true
             }

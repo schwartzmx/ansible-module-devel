@@ -30,10 +30,6 @@ $result = New-Object psobject @{
     changed = $false
 }
 
-If ($PSVersionTable.PSVersion.Major -lt 4) {
-    Fail-Json $result "Module win_host requires Powershell 4.0 or greater."
-}
-
 If ($params.timezone) {
     Try {
         C:\Windows\System32\tzutil /s $params.timezone.toString()
@@ -153,13 +149,18 @@ ElseIf ($hostname -and $domain){
             }
         }
         ElseIf (-Not $state) {
-            Try {
-                $cmd = "Remove-Computer $computername $unjoincredential (New-Object System.Management.Automation.PSCredential '$user', '$pass') $restart -Force"
-                Invoke-Expression $cmd
-                $result.changed = $true
+            If ($workgroup) {
+                Try {
+                    $cmd = "Remove-Computer $computername $workgroup $unjoincredential (New-Object System.Management.Automation.PSCredential '$user', '$pass') $restart -Force"
+                    Invoke-Expression $cmd
+                    $result.changed = $true
+                }
+                Catch {
+                    Fail-Json $result "an error occured when unjoining $hostname from domain. command attempted --> $cmd"
+                }
             }
-            Catch {
-                Fail-Json $result "an error occured when unjoining $hostname from domain. command attempted --> $cmd"
+            Else {
+                Fail-Json $result "missing required param: workgroup.  A workgroup must be specified to join after unjoining $domain"
             }
         }
         Else {
@@ -185,12 +186,12 @@ ElseIf ($hostname -and $workgroup){
         }
         ElseIf (-Not $state) {
             Try {
-                $cmd = "Remove-Computer $computername $workgroup $local (New-Object System.Management.Automation.PSCredential '$user', '$pass') $restart -Force"
+                $cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential '$user', '$pass') $restart -Force"
                 Invoke-Expression $cmd
                 $result.changed = $true
             }
             Catch {
-                Fail-Json $result "an error occured when unjoining $computername and moving to $workgroup.  command attempted --> $cmd"
+                Fail-Json $result "an error occured when changing workgroup of $computername and moving to $workgroup."
             }
         }
         Else {
@@ -198,7 +199,7 @@ ElseIf ($hostname -and $workgroup){
         }
     }
     Else {
-        Fail-Json $result "missing a required argument for workgroup joining: user or pass"
+        Fail-Json $result "missing a required argument for workgroup joining/unjoining: user or pass"
     }
 }
 Else {

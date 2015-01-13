@@ -19,7 +19,6 @@
 # WANT_JSON
 # POWERSHELL_COMMON
 
-$restart = $false
 $domain = $false
 $workgroup = $false
 
@@ -119,12 +118,12 @@ If ($params.user -and $params.pass) {
 }
 
 If (($params.restart -eq "true") -or ($params.restart -eq "yes")) {
-    $restart = "-Restart"
+    $restart = $true
     Set-Attr $result.win_host "restart" "true"
 }
 Else {
     Set-Attr $result.win_host "restart" "false"
-    $restart = ""
+    $restart = $false
 }
 
 If ($params.state -eq "present") {
@@ -140,9 +139,6 @@ ElseIf ($params.state -eq "absent") {
 If ($hostname -and -Not ($credential) -and -Not ($domain -Or $workgroup) -and $hostname.length -eq 1) {
     Rename-Computer $hostname[0]
     $result.changed = $true
-    If ($restart) {
-        Restart-Computer -Force
-    }
 }
 # Domain
 ElseIf ($hostname -and $domain){
@@ -159,9 +155,9 @@ ElseIf ($hostname -and $domain){
                     If ($newname) {
                         $computername = $newname
                     }
-                    $cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) $restart -Force"
-                    Invoke-Expression $cmd
-                    $cmd = "Add-Computer $computername $domain $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) $server $options $oupath $unsecure $restart -Force"
+                    #$cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) -Force"
+                    #Invoke-Expression $cmd
+                    $cmd = "Add-Computer $computername $workgroup $domain $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) $server $options $oupath $unsecure -Force"
                     Invoke-Expression $cmd
                     $result.changed = $true
                 }
@@ -176,7 +172,7 @@ ElseIf ($hostname -and $domain){
                         If ($newname) {
                             $computername = $newname
                         }
-                        $cmd = "Add-Computer $computername $domain $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) $server $options $oupath $unsecure $restart -Force"
+                        $cmd = "Add-Computer $computername $domain $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) $server $options $oupath $unsecure -Force"
                         Invoke-Expression $cmd
                         $result.changed = $true
                     }
@@ -189,7 +185,7 @@ ElseIf ($hostname -and $domain){
         ElseIf (-Not ($state)) {
             If ($workgroup) {
                 Try {
-                    $cmd = "Remove-Computer $computername $workgroup $unjoincredential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) $restart -Force"
+                    $cmd = "Remove-Computer $computername $workgroup $unjoincredential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) -Force"
                     Invoke-Expression $cmd
                     $result.changed = $true
                 }
@@ -213,9 +209,9 @@ ElseIf ($hostname -and $domain){
 ElseIf ($hostname -and $workgroup -and (-Not $domain)){
     If ($credential) {
         Try{
-            $cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) $restart -Force"
+            $cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) -Force"
             Invoke-Expression $cmd
-             $result.changed = $true
+            $result.changed = $true
         }
         Catch {
             Fail-Json $result "an error occured when adding $computername to $workgroup.  command attempted --> $cmd"
@@ -225,6 +221,7 @@ ElseIf ($hostname -and $workgroup -and (-Not $domain)){
         Fail-Json $result "missing a required argument for workgroup joining/unjoining: user or pass"
     }
 }
+# Should never get here
 Else {
     Fail-Json $result "An error occured, and no commands were ever executed."
 }
@@ -233,6 +230,11 @@ Else {
 If ($result.changed) {
     ipconfig /flushdns
     ipconfig /registerdns
+}
+
+# Restart for changes to take effect
+If ($restart) {
+    Restart-Computer -Force
 }
 
 

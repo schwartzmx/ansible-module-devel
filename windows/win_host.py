@@ -27,11 +27,11 @@ module: win_host
 version_added: ""
 short_description: Hostname setting, Timezone setting, and domain unjoining/joining module.
 description:
-     - Change the host's timezone, hostname, and domain.  Allows domain joining/unjoining, along with workgroup joining/unjoining.
+     - Change the host's timezone, hostname, and domain.  Allows active-directory domain joining/unjoining, along with workgroup joining/unjoining.
 options:
   hostname:
     description:
-      - Hostname to change to
+      - Hostname to change to, or a comma separated list of computers to add to the domain
     required: false
     default: current nodes hostname
     aliases: []

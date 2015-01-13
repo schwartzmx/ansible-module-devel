@@ -51,7 +51,7 @@ If ($params.hostname) {
     }
 }
 
-If ($params.domain -and (-Not($params.workgroup))) {
+If ($params.domain) {
     $domain = $params.domain.toString()
     Set-Attr $result.win_host "domain" $domain
     $domain = "-DomainName '$domain'"
@@ -92,11 +92,17 @@ If ($params.domain -and (-Not($params.workgroup))) {
         $unsecure = ""
     }
 }
+Else {
+    $domain = ""
+}
 
-If ($params.workgroup -and (-Not($params.domain))) {
+If ($params.workgroup) {
     $workgroup = $params.workgroup.toString()
     Set-Attr $result.win_host "workgroup" $workgroup
     $workgroup = "-WorkgroupName '$workgroup'"
+}
+Else {
+    $workgroup = ""
 }
 
 If ($params.user -and $params.pass) {
@@ -220,7 +226,7 @@ ElseIf ($hostname -and $workgroup -and (-Not $domain)){
     }
 }
 Else {
-    Fail-Json $result "An error occured, and no commands were ever executed"
+    Fail-Json $result "An error occured, and no commands were ever executed."
 }
 
 

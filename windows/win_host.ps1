@@ -229,5 +229,11 @@ Else {
     Fail-Json $result "An error occured, and no commands were ever executed."
 }
 
+# Flush and re-register so that the DNS changes take place
+If ($result.changed) {
+    ipconfig /flushdns
+    ipconfig /registerdns
+}
+
 
 Exit-Json $result;

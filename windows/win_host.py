@@ -128,6 +128,42 @@ $ ansible -i hosts -m win_host -a "" all
 $ ansible -i hosts -m win_host -a "" all
 
 # Playbook example
+# Configure a new machine
 ---
+- name: config machine
+  hosts: all
+  gather_facts: false
+  pre_tasks:
+    - name: Rename host and change timezone
+      win_host:
+        hostname: "NewComputerName"
+        timezone: "Central Standard Time"
+
+  roles:
+    - initRole
+    - anotherRole
+
+  tasks:
+    - name: Add host to domain
+      win_host:
+        hostname: "NewComputerName"
+        domain: "domainName.com"
+        workgroup: "WORKGROUP"
+        restart: "yes"
+        state: "present"
+        user: "Administrator"
+        pass: "SecretPassword"
+    - name: Have to wait for reboot
+      local_action:
+        module: wait_for
+        host: "{{ inventory_hostname }}"
+        port: "{{ansible_ssh_port|default(5986)}}"
+        delay: "15"
+        timeout: "10000"
+        state: "started"
+      sudo: yes
+
+
+
 
 '''

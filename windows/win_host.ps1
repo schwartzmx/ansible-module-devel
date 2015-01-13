@@ -45,6 +45,10 @@ If ($params.hostname) {
     $hostname = $params.hostname.toString().split(",")
     Set-Attr $result.win_host "hostname" $hostname.toString()
     $computername = "-ComputerName '$hostname'"
+
+    If ($hostname.length -eq 1) {
+        $newname = "-NewName '$hostname'"
+    }
 }
 
 If ($params.domain -and (-Not($params.workgroup))) {
@@ -127,7 +131,7 @@ ElseIf ($params.state -eq "absent") {
 }
 
 # If just hostname was provided and not a user and pass and there was only one hostname just rename computer
-If ($hostname -and -Not ($user -and $pass) -and $hostname.length -eq 1) {
+If ($hostname -and -Not ($credential) -and -Not ($domain -Or $workgroup) -and $hostname.length -eq 1) {
     Rename-Computer $hostname[0]
     $result.changed = $true
     If ($restart) {
@@ -140,6 +144,10 @@ ElseIf ($hostname -and $domain){
         If ($state) {
             If ($workgroup) {
                 Try {
+                    # If only one hostname was entered, use the new computer parameter to do a rename and domain join in one step
+                    If ($newname) {
+                        $computername = $newname
+                    }
                     $cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) $restart -Force"
                     Invoke-Expression $cmd
                     $cmd = "Add-Computer $computername $domain $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) $server $options $oupath $unsecure $restart -Force"
@@ -152,6 +160,10 @@ ElseIf ($hostname -and $domain){
             }
             Else {
                 Try{
+                    # If only one hostname was entered, use the new computer parameter to do a rename and domain join in one step
+                    If ($newname) {
+                        $computername = $newname
+                    }
                     $cmd = "Add-Computer $computername $domain $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) $server $options $oupath $unsecure $restart -Force"
                     Invoke-Expression $cmd
                     $result.changed = $true

@@ -122,11 +122,11 @@ Else {
 }
 
 If ($params.state -eq "present") {
-    $params.state = $true
+    $state = $true
     Set-Attr $result.win_host "state" "present"
 }
 ElseIf ($params.state -eq "absent") {
-    $params.state = $false
+    $state = $false
     Set-Attr $result.win_host "state" "absent"
 }
 

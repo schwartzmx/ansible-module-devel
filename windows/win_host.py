@@ -122,10 +122,10 @@ author: Phil Schwartz
 '''
 
 EXAMPLES = '''
-#
-$ ansible -i hosts -m win_host -a "" all
-#
-$ ansible -i hosts -m win_host -a "" all
+# Change Hostname and Timezone
+$ ansible -i hosts -m win_host -a "hostname=MyNewComp timezone='Eastern Standard Time'" all
+# Add hostnames to domain
+$ ansible -i hosts -m win_host -a "hostname=Comp1,Comp2,Comp3 timezone='Central Standard Time' domain=host.com state=present server=xyz.host.com user=Admin pass=Secret restart=true" all
 
 # Playbook example
 # Configure a new machine
@@ -133,27 +133,23 @@ $ ansible -i hosts -m win_host -a "" all
 - name: config machine
   hosts: all
   gather_facts: false
-  pre_tasks:
-    - name: Rename host and change timezone
-      win_host:
-        hostname: "NewComputerName"
-        timezone: "Central Standard Time"
-
   roles:
     - initRole
     - anotherRole
 
   tasks:
-    - name: Add host to domain
+    - name: Rename host, change timezone, and add to domain
       win_host:
         hostname: "NewComputerName"
         domain: "domainName.com"
         workgroup: "WORKGROUP"
         restart: "yes"
         state: "present"
-        user: "Administrator"
+        user: "domainName\Administrator"
         pass: "SecretPassword"
-    - name: Have to wait for reboot
+        timezone: "Central Standard Time"
+        server: "domaincontroller.domainName.com"
+    - name: Wait for reboot
       local_action:
         module: wait_for
         host: "{{ inventory_hostname }}"
@@ -162,8 +158,4 @@ $ ansible -i hosts -m win_host -a "" all
         timeout: "10000"
         state: "started"
       sudo: yes
-
-
-
-
 '''

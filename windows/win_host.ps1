@@ -130,7 +130,7 @@ ElseIf ($params.state -eq "absent") {
     Set-Attr $result.win_host "state" "absent"
 }
 
-# If just hostname was provided and not a user and pass and there was only one hostname just rename computer
+# If just hostname was provided and not credentials and there was only one hostname just rename computer
 If ($hostname -and -Not ($credential) -and -Not ($domain -Or $workgroup) -and $hostname.length -eq 1) {
     Rename-Computer $hostname[0]
     $result.changed = $true
@@ -142,7 +142,12 @@ If ($hostname -and -Not ($credential) -and -Not ($domain -Or $workgroup) -and $h
 ElseIf ($hostname -and $domain){
     If ($credential) {
         If ($state) {
-            If ($workgroup) {
+            # Check if already a member of the domain
+            If ((gwmi win32_computersystem).domain -eq $domain) {
+                Set-Attr $result "The computer(s) $hostname is already a member of $domain."
+                $member = $true
+            }
+            If ($workgroup -and -Not $member) {
                 Try {
                     # If only one hostname was entered, use the new computer parameter to do a rename and domain join in one step
                     If ($newname) {
@@ -160,13 +165,15 @@ ElseIf ($hostname -and $domain){
             }
             Else {
                 Try{
-                    # If only one hostname was entered, use the new computer parameter to do a rename and domain join in one step
-                    If ($newname) {
-                        $computername = $newname
+                    If (-Not $member) {
+                        # If only one hostname was entered, use the new computer parameter to do a rename and domain join in one step
+                        If ($newname) {
+                            $computername = $newname
+                        }
+                        $cmd = "Add-Computer $computername $domain $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) $server $options $oupath $unsecure $restart -Force"
+                        Invoke-Expression $cmd
+                        $result.changed = $true
                     }
-                    $cmd = "Add-Computer $computername $domain $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) $server $options $oupath $unsecure $restart -Force"
-                    Invoke-Expression $cmd
-                    $result.changed = $true
                 }
                 Catch {
                     Fail-Json $result "an error occured when adding $computername to $domain.  command attempted --> $cmd"
@@ -193,7 +200,7 @@ ElseIf ($hostname -and $domain){
         }
     }
     Else {
-        Fail-Json $result "missing a required argument for domain joining/unjoining: user or pass"
+        Fail-Json $result "missing a required argument for domain joining/unjoining: user and/or pass"
     }
 }
 # Workgroup change only

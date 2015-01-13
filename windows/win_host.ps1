@@ -106,6 +106,7 @@ If ($params.user -and $params.pass) {
         $pass = $pass | ConvertTo-SecureString -asPlainText -Force
         $credential = "-Credential"
         $unjoincredential = "-UnjoinDomainCredential"
+        $local = "-LocalCredential"
     }
     Catch {
         Fail-Json $result "error creating PSCredential object from provided credentials, User: $user Password: $pass"
@@ -184,7 +185,7 @@ ElseIf ($hostname -and $workgroup){
         }
         ElseIf (-Not $state) {
             Try {
-                $cmd = "Remove-Computer $computername $workgroup $unjoincredential (New-Object System.Management.Automation.PSCredential '$user', '$pass') $restart -Force"
+                $cmd = "Remove-Computer $computername $workgroup $local (New-Object System.Management.Automation.PSCredential '$user', '$pass') $restart -Force"
                 Invoke-Expression $cmd
                 $result.changed = $true
             }

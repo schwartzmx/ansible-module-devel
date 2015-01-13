@@ -141,9 +141,9 @@ ElseIf ($hostname -and $domain){
         If ($state) {
             If ($workgroup) {
                 Try {
-                    $cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential '$user', '$spass') $restart -Force"
+                    $cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential $($user),$($spass)) $restart -Force"
                     Invoke-Expression $cmd
-                    $cmd = "Add-Computer $computername $domain $credential (New-Object System.Management.Automation.PSCredential '$user', '$spass') $server $options $oupath $unsecure $restart -Force"
+                    $cmd = "Add-Computer $computername $domain $credential (New-Object System.Management.Automation.PSCredential $($user),$($spass)) $server $options $oupath $unsecure $restart -Force"
                     Invoke-Expression $cmd
                     $result.changed = $true
                 }
@@ -153,7 +153,7 @@ ElseIf ($hostname -and $domain){
             }
             Else {
                 Try{
-                    $cmd = "Add-Computer $computername $domain $credential (New-Object System.Management.Automation.PSCredential '$user', '$spass') $server $options $oupath $unsecure $restart -Force"
+                    $cmd = "Add-Computer $computername $domain $credential (New-Object System.Management.Automation.PSCredential $($user),$($spass)) $server $options $oupath $unsecure $restart -Force"
                     Invoke-Expression $cmd
                     $result.changed = $true
                 }
@@ -165,7 +165,7 @@ ElseIf ($hostname -and $domain){
         ElseIf (-Not $state) {
             If ($workgroup) {
                 Try {
-                    $cmd = "Remove-Computer $computername $workgroup $unjoincredential (New-Object System.Management.Automation.PSCredential '$user', '$spass') $restart -Force"
+                    $cmd = "Remove-Computer $computername $workgroup $unjoincredential (New-Object System.Management.Automation.PSCredential $($user),$($spass)) $restart -Force"
                     Invoke-Expression $cmd
                     $result.changed = $true
                 }
@@ -189,7 +189,7 @@ ElseIf ($hostname -and $domain){
 ElseIf ($hostname -and $workgroup -and -Not $domain){
     If ($credential) {
         Try{
-            $cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential '$user', '$spass') $restart -Force"
+            $cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential $($user),$($spass)) $restart -Force"
             Invoke-Expression $cmd
              $result.changed = $true
         }

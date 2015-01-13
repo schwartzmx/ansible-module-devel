@@ -49,6 +49,10 @@ If ($params.hostname) {
         $newname = "-NewName '$hostname'"
     }
 }
+# None entered? Use current hostname
+Else {
+    $hostname = [System.Net.Dns]::GetHostName()
+}
 
 If ($params.domain) {
     $domain = $params.domain.toString()
@@ -185,6 +189,7 @@ ElseIf ($hostname -and $domain){
         ElseIf (-Not ($state)) {
             If ($workgroup) {
                 Try {
+
                     $cmd = "Remove-Computer $computername $workgroup $unjoincredential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) -Force"
                     Invoke-Expression $cmd
                     $result.changed = $true

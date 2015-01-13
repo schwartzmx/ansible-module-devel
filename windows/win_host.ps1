@@ -147,7 +147,7 @@ ElseIf ($hostname -and $domain){
                 Set-Attr $result "The computer(s) $hostname is already a member of $domain."
                 $member = $true
             }
-            If ($workgroup -and -Not $member) {
+            If ($workgroup -and -Not ($member)) {
                 Try {
                     # If only one hostname was entered, use the new computer parameter to do a rename and domain join in one step
                     If ($newname) {
@@ -165,7 +165,7 @@ ElseIf ($hostname -and $domain){
             }
             Else {
                 Try{
-                    If (-Not $member) {
+                    If (-Not ($member)) {
                         # If only one hostname was entered, use the new computer parameter to do a rename and domain join in one step
                         If ($newname) {
                             $computername = $newname
@@ -180,7 +180,7 @@ ElseIf ($hostname -and $domain){
                 }
             }
         }
-        ElseIf (-Not $state) {
+        ElseIf (-Not ($state)) {
             If ($workgroup) {
                 Try {
                     $cmd = "Remove-Computer $computername $workgroup $unjoincredential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) $restart -Force"
@@ -204,7 +204,7 @@ ElseIf ($hostname -and $domain){
     }
 }
 # Workgroup change only
-ElseIf ($hostname -and $workgroup -and -Not $domain){
+ElseIf ($hostname -and $workgroup -and (-Not $domain)){
     If ($credential) {
         Try{
             $cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) $restart -Force"

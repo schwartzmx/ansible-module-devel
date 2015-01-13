@@ -94,13 +94,15 @@ If ($params.workgroup -and (-Not($params.domain))) {
 
 If ($params.user -and $params.pass) {
     Try {
-        $pass = $params.pass.toString() | ConvertTo-SecureString -asPlainText -Force
-        $creds = New-Object System.Management.Automation.PSCredential($user, $pass)
+        $user = $params.user.toString()
+        $pass = $params.pass.toString()
+        $spass = $pass | ConvertTo-SecureString -asPlainText -Force
+        $creds = New-Object System.Management.Automation.PSCredential($user, $spass)
         $credential = "-Credential $creds"
         $unjoincredential = "-UnjoinDomainCredential $creds"
     }
     Catch {
-        Fail-Json $result "error creating PSCredential object from provided credentials, User: $user Password: $params.pass"
+        Fail-Json $result "error creating PSCredential object from provided credentials, User: $user Password: $pass"
     }
 }
 

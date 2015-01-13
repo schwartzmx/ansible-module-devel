@@ -52,36 +52,41 @@ If ($params.hostname) {
 }
 
 If ($params.domain -and (-Not($params.workgroup))) {
-    $domain = "-DomainName $params.domain.toString()"
-    Set-Attr $result.win_host "domain" $domain.toString()
+    $domain = $params.domain.toString()
+    Set-Attr $result.win_host "domain" $domain
+    $domain = "-DomainName $domain"
 
     If ($params.server) {
-        $server = "-Server $params.server.toString()"
-        Set-Attr $result.win_host "server" $server.toString()
+        $server = $params.server.toString()
+        Set-Attr $result.win_host "server" $server
+        $server = "-Server $server"
     }
     Else {
         $server = ""
     }
 
     If ($params.options) {
-        $options = "-Options $params.options.toString()"
-        Set-Attr $result.win_host "options" $options.toString()
+        $options = $params.options.toString()
+        Set-Attr $result.win_host "options" $options
+        $options = "-Options $options"
     }
     Else {
         $options = ""
     }
 
     If ($params.oupath) {
-        $oupath = "-OUPath $params.oupath.toString()"
-        Set-Attr $result.win_host "oupath" $oupath.toString()
+        $oupath = $params.oupath.toString()
+        Set-Attr $result.win_host "oupath" $oupath
+        $oupath = "-OUPath $oupath"
     }
     Else {
         $oupath = ""
     }
 
     If (($params.unsecure -eq "true") -or ($params.unsecure -eq "yes")) {
-        $unsecure = "-Unsecure"
-        Set-Attr $result.win_host "unsecure" $unsecure.toString()
+        $unsecure = $params.unsecure.toString()
+        Set-Attr $result.win_host "unsecure" $unsecure
+        $unsecure = "-Unsecure $unsecure"
     }
     Else {
         $unsecure = ""
@@ -89,7 +94,9 @@ If ($params.domain -and (-Not($params.workgroup))) {
 }
 
 If ($params.workgroup -and (-Not($params.domain))) {
-    $workgroup = "-WorkgroupName $params.workgroup.toString()"
+    $workgroup = $params.workgroup.toString()
+    Set-Attr $result.win_host "workgroup" $workgroup
+    $workgroup = "-WorkgroupName $workgroup"
 }
 
 If ($params.user -and $params.pass) {
@@ -108,18 +115,20 @@ If ($params.user -and $params.pass) {
 
 If (($params.restart -eq "true") -or ($params.restart -eq "yes")) {
     $restart = "-Restart"
-    Set-Attr $result.win_host "restart" $restart.toString()
+    Set-Attr $result.win_host "restart" "true"
 }
 Else {
-    Set-Attr $result.win_host "restart" $restart.toString()
+    Set-Attr $result.win_host "restart" "false"
     $restart = ""
 }
 
 If ($params.state -eq "present") {
     $params.state = $true
+    Set-Attr $result.win_host "state" "present"
 }
 ElseIf ($params.state -eq "absent") {
     $params.state = $false
+    Set-Attr $result.win_host "state" "absent"
 }
 
 # If just hostname was provided and not a user and pass and there was only one hostname just rename computer

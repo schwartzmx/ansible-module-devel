@@ -139,13 +139,27 @@ If ($hostname -and -Not ($user -and $pass) -and $hostname.length -eq 1) {
 ElseIf ($hostname -and $domain){
     If ($credential) {
         If ($state) {
-            Try{
-                $cmd = "Add-Computer $computername $domain $credential (New-Object System.Management.Automation.PSCredential '$user', '$pass') $server $options $oupath $unsecure $restart -Force"
-                Invoke-Expression $cmd
-                $result.changed = $true
+            If ($workgroup) {
+                Try {
+                    $cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential '$user', '$pass') $restart -Force"
+                    Invoke-Expression $cmd
+                    $cmd = "Add-Computer $computername $domain $credential (New-Object System.Management.Automation.PSCredential '$user', '$pass') $server $options $oupath $unsecure $restart -Force"
+                    Invoke-Expression $cmd
+                    $result.changed = $true
+                }
+                Catch {
+                    Fail-Json $result "an error occured when adding $hostname to $workgroup, and then adding to $domain. command attempted --> $cmd"
+                }
             }
-            Catch {
-                Fail-Json $result "an error occured when adding $computername to $domain.  command attempted --> $cmd"
+            Else {
+                Try{
+                    $cmd = "Add-Computer $computername $domain $credential (New-Object System.Management.Automation.PSCredential '$user', '$pass') $server $options $oupath $unsecure $restart -Force"
+                    Invoke-Expression $cmd
+                    $result.changed = $true
+                }
+                Catch {
+                    Fail-Json $result "an error occured when adding $computername to $domain.  command attempted --> $cmd"
+                }
             }
         }
         ElseIf (-Not $state) {
@@ -171,31 +185,16 @@ ElseIf ($hostname -and $domain){
         Fail-Json $result "missing a required argument for domain joining/unjoining: user or pass"
     }
 }
-# Workgroup
-ElseIf ($hostname -and $workgroup){
+# Workgroup change only
+ElseIf ($hostname -and $workgroup -and -Not $domain){
     If ($credential) {
-        If ($state) {
-            Try{
-                $cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential '$user', '$pass') $restart -Force"
-                Invoke-Expression $cmd
-                $result.changed = $true
-            }
-            Catch {
-                Fail-Json $result "an error occured when adding $computername to $workgroup.  command attempted --> $cmd"
-            }
+        Try{
+            $cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential '$user', '$pass') $restart -Force"
+            Invoke-Expression $cmd
+             $result.changed = $true
         }
-        ElseIf (-Not $state) {
-            Try {
-                $cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential '$user', '$pass') $restart -Force"
-                Invoke-Expression $cmd
-                $result.changed = $true
-            }
-            Catch {
-                Fail-Json $result "an error occured when changing workgroup of $computername and moving to $workgroup."
-            }
-        }
-        Else {
-            Fail-Json $result "missing a required argument for workgroup joining/unjoining: state"
+        Catch {
+            Fail-Json $result "an error occured when adding $computername to $workgroup.  command attempted --> $cmd"
         }
     }
     Else {

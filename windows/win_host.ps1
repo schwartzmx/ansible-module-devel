@@ -154,7 +154,7 @@ If ($hostname -and -Not ($credential) -and -Not ($domain -Or $workgroup) -and $h
     $result.changed = $true
 }
 # Domain
-ElseIf (($state -ne "none") -and $hostname -and $domain){
+ElseIf ($hostname -and $domain){
     If ($credential) {
         If ($state -eq $true) {
             # Check if already a member of the domain
@@ -217,7 +217,7 @@ ElseIf (($state -ne "none") -and $hostname -and $domain){
     }
 }
 # Workgroup change only
-ElseIf (($state -ne "none") -and $hostname -and $workgroup -and (-Not $domain)){
+ElseIf ($hostname -and $workgroup -and (-Not $domain)){
     If ($credential) {
         Try{
             $cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) -Force"

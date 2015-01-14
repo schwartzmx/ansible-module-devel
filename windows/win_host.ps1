@@ -156,7 +156,7 @@ If ($hostname -and -Not ($credential) -and -Not ($domain -Or $workgroup) -and $h
 # Domain
 ElseIf (($state -ne "none") -and $hostname -and $domain){
     If ($credential) {
-        If ($state) {
+        If ($state -eq $true) {
             # Check if already a member of the domain
             If ((gwmi win32_computersystem).domain -eq $domain) {
                 Fail-Json $result "The computer(s) $hostname is already a member of $domain."
@@ -192,7 +192,7 @@ ElseIf (($state -ne "none") -and $hostname -and $domain){
                 }
             }
         }
-        ElseIf (-Not ($state)) {
+        ElseIf ($state -eq $false)) {
             If ($workgroup) {
                 Try {
 

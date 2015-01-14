@@ -232,9 +232,9 @@ ElseIf (($state -ne "none") -and $hostname -and $workgroup -and (-Not $domain)){
         Fail-Json $result "missing a required argument for workgroup joining/unjoining: user or pass"
     }
 }
-# Should never get here
+# No state was provided
 Else {
-    Fail-Json $result "An error occured, and no commands were ever executed."
+    Fail-Json $result "missing required argument for domain/workgroup joining/unjoining: state"
 }
 
 # Flush and re-register so that the DNS changes take place

@@ -46,7 +46,7 @@ If ($params.hostname) {
     Set-Attr $result.win_host "hostname" $hostname.toString()
     $computername = "-ComputerName '$hostname'"
 
-    If ($hostname.length -eq 1) {
+    If ($hostname.length -eq 1 -and -Not([System.Net.Dns]::GetHostName() -eq $hostname[0])) {
         $newname = "-NewName '$hostname'"
     }
 }
@@ -55,10 +55,6 @@ Else {
     $hostname = [System.Net.Dns]::GetHostName()
     Set-Attr $result.win_host "hostname" $hostname.toString()
     $computername = "-ComputerName '$hostname'"
-
-    If ($hostname.length -eq 1) {
-        $newname = "-NewName '$hostname'"
-    }
 }
 
 If ($params.domain) {

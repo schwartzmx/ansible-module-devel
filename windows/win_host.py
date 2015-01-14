@@ -27,18 +27,18 @@ module: win_host
 version_added: ""
 short_description: Hostname setting, Timezone setting, and domain unjoining/joining module.
 description:
-     - Change the host's timezone, hostname, and domain.  Allows active-directory domain joining/unjoining, along with workgroup joining/unjoining.
+     - Change the host's timezone, hostname, and domain.  Allows active-directory domain joining/unjoining, along with workgroup joining/unjoining. Uses Powershell's Add-Computer and Remove-Computer.
 options:
   hostname:
     description:
       - Hostname to change to, or a comma separated list of computers to add to the domain
-    required: false
+    required: no
     default: current nodes hostname
     aliases: []
   state:
     description:
       - Specify whether to join or unjoin
-    required: true
+    required: no
     choices:
       - present
       - absent
@@ -47,7 +47,7 @@ options:
   domain:
     description:
       - Domain name to join/unjoin
-    required: false
+    required: no
     default: none
     aliases: []
   workgroup:
@@ -64,13 +64,13 @@ options:
     aliases: []
   user:
     description:
-      - User with permission to join/unjoin
+      - Domain user with permission to join/unjoin
     required: no
     default: none
     aliases: []
   pass:
     description:
-      - Password for specified user
+      - Domain user password
     required: no
     default: none
     aliases: []

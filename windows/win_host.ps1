@@ -21,6 +21,7 @@
 
 $domain = $false
 $workgroup = $false
+$creds = $false
 
 $params = Parse-Args $args;
 
@@ -115,16 +116,13 @@ Else {
 }
 
 If ($params.user -and $params.pass) {
-    Try {
-        $user = $params.user.toString()
-        $pass = $params.pass.toString()
-        $credential = "-Credential"
-        $unjoincredential = "-UnjoinDomainCredential"
-        $local = "-LocalCredential"
-    }
-    Catch {
-        Fail-Json $result "error creating PSCredential object from provided credentials, User: $user Password: $pass"
-    }
+    $user = $params.user.toString()
+    $pass = $params.pass.toString()
+    $credential = "-Credential"
+    $unjoincredential = "-UnjoinDomainCredential"
+    $local = "-LocalCredential"
+
+    $creds = $true
 }
 
 If (($params.restart -eq "true") -or ($params.restart -eq "yes")) {
@@ -155,7 +153,7 @@ If ($hostname -and -Not ($credential) -and -Not ($domain -Or $workgroup) -and $h
 }
 # Domain
 ElseIf ($hostname -and $domain){
-    If ($credential) {
+    If ($creds) {
         If ($state -eq $true) {
             # Check if already a member of the domain
             If ((gwmi win32_computersystem).domain -eq $domain) {
@@ -218,7 +216,7 @@ ElseIf ($hostname -and $domain){
 }
 # Workgroup change only
 ElseIf ($hostname -and $workgroup -and (-Not $domain)){
-    If ($credential) {
+    If ($creds) {
         Try{
             $cmd = "Add-Computer $computername $workgroup $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) -Force"
             Invoke-Expression $cmd

@@ -83,14 +83,16 @@ Catch {
 
 If ($params.cmd) {
     $response = Invoke-Expression $cmd
+    $result.changed = $true
 }
 Else {
     $response = "No command executed"
 }
 
+If ($response) {
+    Set-Attr $result.win_pscx "response" $response.toString()
+}
 
-
-Set-Attr $result.win_pscx "response" $response.toString()
 
 Exit-Json $result;
 

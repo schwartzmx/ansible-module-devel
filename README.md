@@ -5,8 +5,12 @@ This is where my work on ansible modules will be done before submitting PRs to h
 
 #####Current module dev:
 - Windows
+  - `win_acl`
+    - set file/directory permissions for user/group
   - `win_host`
     - host renaming and domain joining
+  - `win_pscx`
+    - install pscx (if needed), runs pscx commands
   - `win_s3`
     - download/upload to aws_s3
   - `win_unzip`

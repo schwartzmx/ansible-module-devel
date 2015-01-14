@@ -111,7 +111,7 @@ If ($params.workgroup) {
     $workgroup = "-WorkgroupName '$workgroup'"
 }
 Else {
-    $workgroup = ""
+    $workgroup = "WORKGROUP"
 }
 
 If ($params.user -and $params.pass) {
@@ -192,7 +192,7 @@ ElseIf (($state -ne "none") -and $hostname -and $domain){
                 }
             }
         }
-        ElseIf ($state -eq $false)) {
+        ElseIf ($state -eq $false) {
             If ($workgroup) {
                 Try {
 

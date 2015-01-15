@@ -95,6 +95,13 @@ Else {
     Fail-Json $result "missing required argument: rights"
 }
 
+If ($params.state -eq "absent" {
+    $state = "remove"
+}
+Else {
+    $state = "add"
+}
+
 Try {
     $colRights = [System.Security.AccessControl.FileSystemRights]$rights
     $InheritanceFlag = [System.Security.AccessControl.InheritanceFlags]$inherit
@@ -112,7 +119,23 @@ Try {
     $objUser = New-Object System.Security.Principal.NTAccount($user)
     $objACE = New-Object System.Security.AccessControl.FileSystemAccessRule ($objUser, $colRights, $InheritanceFlag, $PropagationFlag, $objType)
     $objACL = Get-ACL $src
-    $objACL.AddAccessRule($objACE)
+
+    If ($state -eq "add") {
+        Try {
+            $objACL.AddAccessRule($objACE)
+        }
+        Catch {
+            Fail-Json $result "an exception occured when adding the specified rule.  it may already exist."
+        }
+    }
+    Else {
+        Try {
+            $objACL.RemoveAccessRule($objACE)
+        }
+        Catch {
+            Fail-Json $result "an exception occured when removing the specified rule.  it may not exist."
+        }
+    }
 
     Set-ACL $src $objACL
 

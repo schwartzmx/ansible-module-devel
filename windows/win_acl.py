@@ -41,6 +41,15 @@ options:
     required: yes
     default: none
     aliases: []
+  state:
+    description:
+      - Specify whether to add (present) or remove (absent) the specified access rule
+    required: no
+    choices:
+      - present
+      - absent
+    default: present
+    aliases: []
   type:
     description:
       - Specify whether to allow or deny the rights specified

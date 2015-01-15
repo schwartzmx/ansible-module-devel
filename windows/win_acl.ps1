@@ -95,7 +95,7 @@ Else {
     Fail-Json $result "missing required argument: rights"
 }
 
-If ($params.state -eq "absent" {
+If ($params.state -eq "absent") {
     $state = "remove"
 }
 Else {

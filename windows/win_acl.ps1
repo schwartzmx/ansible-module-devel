@@ -19,7 +19,6 @@
 # WANT_JSON
 # POWERSHELL_COMMON
 
-# win_acl module (File/Resources Permission Additions/Removal)
 $params = Parse-Args $args;
 
 $result = New-Object psobject @{

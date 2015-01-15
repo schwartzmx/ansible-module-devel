@@ -86,7 +86,7 @@ options:
       - ContainerInherit
       - ObjectInherit
       - None
-    default: ContainerInherit, ObjectInherit
+    default: For Leaf File: None; For Directory: ContainerInherit, ObjectInherit;
     aliases: []
   propagation:
     description:

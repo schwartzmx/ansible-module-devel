@@ -63,10 +63,22 @@ Else {
 }
 
 If ($params.inherit) {
-    $inherit = $params.inherit.toString()
+    # If it's a file then no flags can be set or an exception will be thrown
+    If (Test-Path -Path $src -PathType Leaf) {
+        $inherit = "None"
+    }
+    Else {
+        $inherit = $params.inherit.toString()
+    }
 }
 Else {
-    $inherit = "ContainerInherit, ObjectInherit"
+    # If it's a file then no flags can be set or an exception will be thrown
+    If (Test-Path -Path $src -PathType Leaf) {
+        $inherit = "None"
+    }
+    Else {
+        $inherit = "ContainerInherit, ObjectInherit"
+    }
 }
 
 If ($params.propagation) {

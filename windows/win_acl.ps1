@@ -27,16 +27,12 @@ $result = New-Object psobject @{
     changed = $false
 }
 
-# params
-# user = user/group
-# src = file/folder
-# type = allow/deny
-# rights = full-control/modify etc
-# inherit = ContainerInherit, ObjectInherit = examples
-# propagation = None
-
 If ($params.src) {
     $src = $params.src.toString()
+
+    If (-Not (Test-Path -Path $src -PathType Leaf) -Or  -Not (Test-Path -Path $src -PathType Container)) {
+        Fail-Json $result "$src is not a valid file or directory on the host"
+    }
 }
 Else {
     Fail-Json $result "missing required argument: src"
@@ -44,12 +40,18 @@ Else {
 
 If ($params.user) {
     $user = $params.user.toString()
+
+    # Test that the user/group exists on the local machine
+    $localComputer = [ADSI]("WinNT://"+[System.Net.Dns]::GetHostName())
+    $list = ($localComputer.psbase.children | Where-Object { (($_.psBase.schemaClassName -eq "User") -Or ($_.psBase.schemaClassName -eq "Group"))} | Select-Object -expand Name)
+    If (-Not ($list -contains "$user")) {
+        Fail-Json $result "$user is not a valid user or group on the host machine"
+    }
 }
 Else {
-    Fail-Json $result "missing required argument: user.  specify the user or group to apply permissions."
+    Fail-Json $result "missing required argument: user.  specify the user or group to apply permission changes."
 }
 
-# maybe use state instead of type
 If ($params.type -eq "allow") {
     $type = $true
 }
@@ -74,7 +76,12 @@ Else {
     $propagation = "None"
 }
 
-
+If ($params.rights) {
+    $rights = $params.rights.toString()
+}
+Else {
+    Fail-Json $result "missing required argument: rights"
+}
 
 Try {
     $colRights = [System.Security.AccessControl.FileSystemRights]"$rights"
@@ -83,9 +90,11 @@ Try {
 
     If ($type) {
         $objType =[System.Security.AccessControl.AccessControlType]::Allow
+        $method = "adding"
     }
     Else {
         $objType =[System.Security.AccessControl.AccessControlType]::Deny
+        $method = "removing"
     }
 
     $objUser = New-Object System.Security.Principal.NTAccount("$user")
@@ -98,7 +107,7 @@ Try {
     $result.changed = $true
 }
 Catch {
-    Fail-Json $result "an error occured when setting $rights permissions on $src for $user"
+    Fail-Json $result "an error occured when $method $rights permission(s) on $src for $user"
 }
 
 Exit-Json $result

@@ -33,11 +33,11 @@ options:
     description:
       - Hostname to change to, or a comma separated list of computers to add to the domain
     required: no
-    default: current nodes hostname
+    default: Current Host Name
     aliases: []
   state:
     description:
-      - Specify whether to join or unjoin
+      - Specify whether to join (present) or unjoin (absent)
     required: no
     choices:
       - present
@@ -54,7 +54,7 @@ options:
     description:
       - Workgroup name to join/unjoin
     required: no
-    default: none
+    default: WORKGROUP
     aliases: []
   server:
     description:
@@ -114,10 +114,6 @@ options:
       - no
     default: false
     aliases: []
-
-
-
-
 author: Phil Schwartz
 '''
 

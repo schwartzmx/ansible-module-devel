@@ -192,15 +192,8 @@ ElseIf ($hostname -and $domain){
                     # Remove from Domain
                     $cmd = "Remove-Computer $computername $workgroup $unjoincredential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) -Force"
                     Invoke-Expression $cmd
-                    Try {
-                        # Remove from AD
-                        $cmd = "Remove-ADComputer -Identity $computername $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) $server -Confirm:$false"
-                        Invoke-Expression $cmd
-                        $result.changed = $true
-                    }
-                    Catch {
-                        Fail-Json $result "an error occured when removing $hostname from AD computers. command attempted --> $cmd"
-                    }
+
+                    #TODO Remove Disabled Account from Computers Group in AD
                 }
                 Catch {
                     Fail-Json $result "an error occured when unjoining $hostname from domain. command attempted --> $cmd"

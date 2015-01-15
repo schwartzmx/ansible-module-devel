@@ -109,11 +109,9 @@ Try {
 
     If ($type) {
         $objType =[System.Security.AccessControl.AccessControlType]::Allow
-        $method = "adding"
     }
     Else {
         $objType =[System.Security.AccessControl.AccessControlType]::Deny
-        $method = "removing"
     }
 
     $objUser = New-Object System.Security.Principal.NTAccount($user)
@@ -142,7 +140,7 @@ Try {
     $result.changed = $true
 }
 Catch {
-    Fail-Json $result "an error occured when $method $rights permission(s) on $src for $user"
+    Fail-Json $result "an error occured when attempting to $state $rights permission(s) on $src for $user"
 }
 
 Exit-Json $result

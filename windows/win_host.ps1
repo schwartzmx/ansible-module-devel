@@ -189,8 +189,11 @@ ElseIf ($hostname -and $domain){
         ElseIf ($state -eq $false) {
             If ($workgroup) {
                 Try {
-
+                    # Remove from Domain
                     $cmd = "Remove-Computer $computername $workgroup $unjoincredential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) -Force"
+                    Invoke-Expression $cmd
+                    # Remove from AD
+                    $cmd = "Remove-ADComputer -Identity $computername $credential (New-Object System.Management.Automation.PSCredential $($user),(convertto-securestring $($pass) -asplaintext -force)) $server -Confirm:$false"
                     Invoke-Expression $cmd
                     $result.changed = $true
                 }

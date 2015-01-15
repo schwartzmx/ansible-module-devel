@@ -35,6 +35,12 @@ options:
     required: yes
     default: none
     aliases: []
+  user:
+    description:
+      - User or Group to add specified rights to act on src file/folder
+    required: yes
+    default: none
+    aliases: []
   type:
     description:
       - Specify whether to allow or deny the rights specified
@@ -96,40 +102,18 @@ author: Phil Schwartz
 '''
 
 EXAMPLES = '''
-# Change Hostname and Timezone
-$ ansible -i hosts -m win_host -a "hostname=MyNewComp timezone='Eastern Standard Time'" all
-# Add hostnames to domain
-$ ansible -i hosts -m win_host -a "hostname=Comp1,Comp2,Comp3 timezone='Central Standard Time' domain=host.com state=present server=xyz.host.com user=Admin pass=Secret restart=true" all
+# Restrict write,execute access to User Fed-Phil
+$ ansible -i hosts -m win_acl -a "user=Fed-Phil src=C:\Important\Executable.exe type=deny rights:'ExecuteFile,Write'" all
 
 # Playbook example
 # Configure a new machine
 ---
-- name: config machine
-  hosts: all
-  gather_facts: false
-  roles:
-    - initRole
-    - anotherRole
-
-  tasks:
-    - name: Rename host, change timezone, and add to domain
-      win_host:
-        hostname: "NewComputerName"
-        domain: "domainName.com"
-        workgroup: "WORKGROUP"
-        restart: "yes"
-        state: "present"
-        user: "domainName\Administrator"
-        pass: "SecretPassword"
-        timezone: "Central Standard Time"
-        server: "domaincontroller.domainName.com"
-    - name: Wait for reboot
-      local_action:
-        module: wait_for
-        host: "{{ inventory_hostname }}"
-        port: "{{ansible_ssh_port|default(5986)}}"
-        delay: "15"
-        timeout: "10000"
-        state: "started"
-      sudo: yes
+- name: Add IIS_IUSRS rights
+  win_acl:
+    src: 'C:\inetpub\wwwroot\MySite'
+    user: 'IIS_IUSRS'
+    rights: 'FullControl'
+    type: 'allow'
+    inherit: 'ContainerInherit, ObjectInherit'
+    propagation: 'None'
 '''

@@ -108,7 +108,8 @@ If ($params.workgroup) {
     $workgroup = "-WorkgroupName '$workgroup'"
 }
 Else {
-    $workgroup = "WORKGROUP"
+    Set-Attr $result.win_host "workgroup" "WORKGROUP"
+    $workgroup = "-WorkgroupName 'WORKGROUP'"
 }
 
 If ($params.user -and $params.pass) {
@@ -153,7 +154,7 @@ ElseIf ($hostname -and $domain){
         If ($state -eq $true) {
             # Check if already a member of the domain
             If ((gwmi win32_computersystem).domain -eq $domain) {
-                Fail-Json $result "The computer(s) $hostname is already a member of $domain."
+                Fail-Json $result "The computer(s) $hostname is/are already a member of $domain."
             }
             If ($workgroup) {
                 Try {

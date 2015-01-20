@@ -31,14 +31,14 @@ $result = New-Object psobject @{
 }
 
 # Remove account from ActiveDirectory on domain controller
-If (($params.rm -eq "true") -Or ($params.rm -eq "yes")) {
+If ($params.rm -eq "true" -Or $params.rm -eq "yes") {
     If ($params.hostname) {
         $user = $params.hostname.toString()
         Try {
           Import-Module ActiveDirectory
         }
         Catch {
-          Fail-Json $result "Error importing module ActiveDirectory.  Is this being run on a domain controller with ActiveDirectory installed?"
+          Fail-Json $result "Error importing module ActiveDirectory.  Please ensure this is being run on a domain controller with Active Directory installed."
         }
         Try {
           ([ADSI]([ADSISearcher]"samaccountname=$user`$").FindOne().Path).PSBase.DeleteTree()
@@ -48,7 +48,7 @@ If (($params.rm -eq "true") -Or ($params.rm -eq "yes")) {
         }
     }
     Else {
-        Fail-Json $result "missing required argument: hostname"
+        Fail-Json $result "missing required argument for AD computer removal: hostname"
     }
 }
 # Continue as normal

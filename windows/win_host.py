@@ -50,6 +50,12 @@ options:
     required: no
     default: none
     aliases: []
+  rm:
+    description:
+      - *Specified when the play acts on a DOMAIN CONTROLLER, it will remove the given hostname from the ActiveDirectory Computer users.
+    required: no
+    default: none
+    aliases: []
   workgroup:
     description:
       - Workgroup name to join/unjoin
@@ -124,34 +130,45 @@ $ ansible -i hosts -m win_host -a "hostname=MyNewComp timezone='Eastern Standard
 $ ansible -i hosts -m win_host -a "hostname=Comp1,Comp2,Comp3 timezone='Central Standard Time' domain=host.com state=present server=xyz.host.com user=Admin pass=Secret restart=true" all
 
 # Playbook example
-# Configure a new machine
+# Rename machine, change timezone, and add to the specified domain
 ---
-- name: config machine
-  hosts: all
-  gather_facts: false
-  roles:
-    - initRole
-    - anotherRole
+- name: Rename host, change timezone, and add to domain
+  win_host:
+    hostname: "NewComputerName"
+    domain: "domainName.com"
+    workgroup: "WORKGROUP"
+    restart: "yes"
+    state: "present"
+    user: "domainName\Administrator"
+    pass: "SecretPassword"
+    timezone: "Central Standard Time"
+    server: "domaincontroller.domainName.com"
+- name: Wait for reboot
+  local_action:
+    module: wait_for
+      host: "{{ inventory_hostname }}"
+      port: "{{ansible_ssh_port|default(5986)}}"
+      delay: "15"
+      timeout: "10000"
+      state: "started"
+    sudo: yes
 
-  tasks:
-    - name: Rename host, change timezone, and add to domain
-      win_host:
-        hostname: "NewComputerName"
-        domain: "domainName.com"
-        workgroup: "WORKGROUP"
-        restart: "yes"
-        state: "present"
-        user: "domainName\Administrator"
-        pass: "SecretPassword"
-        timezone: "Central Standard Time"
-        server: "domaincontroller.domainName.com"
-    - name: Wait for reboot
-      local_action:
-        module: wait_for
-        host: "{{ inventory_hostname }}"
-        port: "{{ansible_ssh_port|default(5986)}}"
-        delay: "15"
-        timeout: "10000"
-        state: "started"
-      sudo: yes
+
+# Remove the machine from the domain, AND remove the disabled account from Active Directory using delegate_to domain controller.
+# Requires that the domain-controller group (in inventory) and a hostname user is present
+---
+# Remove instance from domain name
+- name: Remove computer from  domain fedsamp.com
+  win_host:
+    user: "{{domain_user}}"
+    pass: "{{domain_pass}}"
+    domain: "{{domain_name}}"
+    state: "absent"
+
+# Run host user removal on [domain-controller]
+- name: Remove disabled account on domain controller
+  win_host:
+    hostname: "{{host_name}}"
+    rm: true
+  delegate_to: "{{ hostvars[groups['domain-controller'][0]]['inventory_hostname'] }}"
 '''

@@ -30,6 +30,7 @@ $result = New-Object psobject @{
 # Pscx-3.2.0.msi
 $url = "http://download-codeplex.sec.s-msft.com/Download/Release?ProjectName=pscx&DownloadId=923562&FileTime=130585918034470000&Build=20959"
 $dest = "C:\Pscx-3.2.0.msi"
+$version = "3.2.0"
 
 # Check if PSCX is installed
 $list = Get-Module -ListAvailable
@@ -39,6 +40,8 @@ If (-Not ($list -match "PSCX")) {
     Try {
         cinst -force PSCX
         $choco = $true
+        # Give it a chance to install, so that it can be imported
+        sleep 10
     }
     Catch {
         $choco = $false
@@ -82,6 +85,14 @@ Catch {
 }
 
 If ($params.cmd) {
+    $cmdlet = $params.cmd.split(" ")[$params.cmd.length - 1]
+    # Check that it is a valid cmdlet
+    $list = Get-Command -Module PSCX
+    $match = $list -match $cmdlet
+    If (-Not ($match)) {
+        Fail-Json $result "The provided cmdlet/function: $cmdlet was not found in module PSCX $version."
+        $response = "No command executed"
+    }
     $response = Invoke-Expression $cmd
     $result.changed = $true
 }

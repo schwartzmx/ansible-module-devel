@@ -85,8 +85,8 @@ Catch {
 }
 
 If ($params.cmd) {
-    $cmdlet = $params.cmd.split(" ")[$params.cmd.length - 1]
-    # Check that it is a valid cmdlet
+    $cmdlet = $params.cmd.split(" ")[0]
+    # Check that it is a valid cmdlet/function
     $list = Get-Command -Module PSCX
     $match = $list -match $cmdlet
     If (-Not ($match)) {

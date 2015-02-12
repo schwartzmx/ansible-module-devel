@@ -141,7 +141,7 @@ If ($params.local) {
             Fail-Json $result "When downloading a file/folder, please specify the save name of the file/folder as well as the valid path, for example: C:\Path\To\Save\To\NAME.zip or C:\Path\To\Save\DIRECTORYNAME"
         }
 
-        If (Test-Path $local -Leaf) {
+        If (Test-Path $local -PathType Leaf) {
             Exit-Json $result "The file already exists."
         }
     }

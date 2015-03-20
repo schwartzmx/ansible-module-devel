@@ -140,6 +140,10 @@ If ($params.local) {
         If ($local[$local.length-1] -eq "/" -Or $local[$local.length-1] -eq "\") {
             Fail-Json $result "When downloading a file/folder, please specify the save name of the file/folder as well as the valid path, for example: C:\Path\To\Save\To\NAME.zip or C:\Path\To\Save\DIRECTORYNAME"
         }
+
+        If (Test-Path $local -PathType Leaf) {
+            Exit-Json $result "The file already exists."
+        }
     }
 }
 Else {
@@ -203,7 +207,7 @@ If ($method -eq "upload"){
             }
         }
         Catch {
-            Fail-Json $result "Error occured when uploading files from $local to $bucket$key"
+            Fail-Json $result "Error occured when uploading files from $local to Bucket: $bucket -> Key: $key"
         }
     }
 }
@@ -216,7 +220,7 @@ ElseIf ($method -eq "download"){
             $result.changed = $true
         }
         Catch {
-            Fail-Json $result "Error downloading $bucket$key and saving as $local"
+            Fail-Json $result "Error downloading Bucket: $bucket -> Key: $key and saving as $local"
         }
     }
     # Key prefix (downloading a directory)
@@ -226,7 +230,7 @@ ElseIf ($method -eq "download"){
             $result.changed = $true
         }
         Catch {
-            Fail-Json $result "Error in downloading virtual dir $bucket$key and saving as $local.  Ensure the path exists and ensure credentials are authorized for access."
+            Fail-Json $result "Error in downloading virtual dir Bucket: $bucket -> Key: $key and saving as $local.  Ensure the path exists and ensure credentials are authorized for access."
         }
     }
 }

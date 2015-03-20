@@ -83,7 +83,11 @@ Else {
     If ($params.domain) {
         $domain = $params.domain.toString()
         Set-Attr $result.win_host "domain" $domain
+        If ($domain -eq (gwmi WIN32_ComputerSystem).Domain) {
+            Exit-Json $result "The computer is already apart of the domain: $domain."
+        }
         $domain = "-DomainName '$domain'"
+
 
         If ($params.server) {
             $server = $params.server.toString()

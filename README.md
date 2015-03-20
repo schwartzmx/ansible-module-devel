@@ -18,3 +18,12 @@ This is where my work on ansible modules will be done before submitting PRs to h
   - `win_zip`
     - compress files/folders
 
+#####To use in your playbooks:
+From your root directory (Where you run your playbooks from):
+```
+	mkdir library && cd library
+	git clone https://github.com/schwartzmx/ansible-module-devel.git
+```
+And that is it... You should be able to use the modules.  Ansible should be able to find them.
+
+

@@ -169,6 +169,6 @@ $ ansible -i hosts -m win_host -a "hostname=Comp1,Comp2,Comp3 timezone='Central 
 - name: Remove disabled account on domain controller
   win_host:
     hostname: "{{host_name}}"
-    rm: true
+    rm: "true"
   delegate_to: "{{ hostvars[groups['domain-controller'][0]]['inventory_hostname'] }}"
 '''

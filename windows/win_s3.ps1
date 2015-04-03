@@ -61,7 +61,7 @@ Else {
 
 # Import Module
 Try {
-    Import-Module AWSPowerShell
+    Import-Module 'C:\Program Files (x86)\AWS Tools\PowerShell\AWSPowerShell\AWSPowerShell.psd1'
 }
 Catch {
     Fail-Json $result "Error importing module AWSPowerShell"

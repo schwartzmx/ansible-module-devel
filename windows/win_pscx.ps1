@@ -38,7 +38,7 @@ $list = Get-Module -ListAvailable
 If (-Not ($list -match "PSCX")) {
     # Try install with chocolatey
     Try {
-        cinst -force PSCX
+        cinst -force PSCX -y
         $choco = $true
         # Give it a chance to install, so that it can be imported
         sleep 10
@@ -56,9 +56,7 @@ If (-Not ($list -match "PSCX")) {
             Fail-Json $result "Error downloading PSCX from $url and saving as $dest"
         }
         Try {
-            msiexec.exe /i $dest /qb
-            # Give it a chance to install, so that it can be imported
-            sleep 10
+            Start-Process -FilePath msiexec.exe -ArgumentList "/i $dest /qb" -Verb Runas -PassThru -Wait | out-null
         }
         Catch {
             Fail-Json $result "Error installing $dest"
@@ -74,7 +72,12 @@ Else {
 # Import
 Try {
     If ($installed) {
-        Import-Module 'C:\Program Files (x86)\Powershell Community Extensions\pscx3\pscx\pscx.psd1'
+        Try {
+            Import-Module 'C:\Program Files (x86)\Powershell Community Extensions\pscx3\pscx\pscx.psd1'
+        }
+        Catch {
+            Import-Module PSCX
+        }
     }
     Else {
         Import-Module PSCX

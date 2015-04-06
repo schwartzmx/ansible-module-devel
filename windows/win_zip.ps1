@@ -41,7 +41,7 @@ $list = Get-Module -ListAvailable
 If (-Not ($list -match "PSCX")) {
     # Try install with chocolatey
     Try {
-        cinst -force PSCX
+        cinst -force PSCX -y
         $choco = $true
     }
     Catch {

@@ -46,9 +46,7 @@ If (-Not ($list -match "AWSPowerShell")){
         Fail-Json $result "Error downloading AWS-SDK from $url and saving as $sdkdest"
     }
     Try{
-        msiexec.exe /i $sdkdest /qb
-        # Give it a chance to install, so that it can be imported
-        sleep 10
+        Start-Process -FilePath msiexec.exe -ArgumentList "/i $sdkdest /qb" -Verb Runas -PassThru -Wait | out-null
     }
     Catch {
         Fail-Json $result "Error installing $sdkdest"
@@ -61,7 +59,12 @@ Else {
 
 # Import Module
 Try {
-    Import-Module 'C:\Program Files (x86)\AWS Tools\PowerShell\AWSPowerShell\AWSPowerShell.psd1'
+    Try {
+        Import-Module 'C:\Program Files (x86)\AWS Tools\PowerShell\AWSPowerShell\AWSPowerShell.psd1'
+    }
+    Catch {
+        Import-Module AWSPowerShell
+    }
 }
 Catch {
     Fail-Json $result "Error importing module AWSPowerShell"

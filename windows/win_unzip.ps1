@@ -33,7 +33,7 @@ If ($params.src) {
         Fail-Json $result "src file: $src does not exist."
     }
 
-    $ext = [System.IO.Path]::GetExtension($dest)
+    $ext = [System.IO.Path]::GetExtension($src)
 }
 Else {
     Fail-Json $result "missing required argument: src"

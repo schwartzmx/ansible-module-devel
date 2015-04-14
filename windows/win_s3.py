@@ -47,6 +47,12 @@ options:
     required: yes
     default: null
     aliases: []
+  overwrite:
+    description:
+      - If true, download the file or directory even if it already exists on the host.
+    required: no
+    default: false
+    aliases: []
   method:
     description:
       - S3 method to carry out. Upload: upload file or entire directory to s3. Download: download a file or directory from s3.
@@ -100,6 +106,7 @@ $ ansible -i hosts -m win_s3 -a "bucket=apps key=My/Web/APP/ local=C:\Users\Me\W
       bucket: 'app_deploys'
       key: 'app/latest/Application.zip'
       method: 'download'
+      overwrite: true
       local: 'C:\Applications\\'
       access_key: 'EXAMPLECRED'
       secret_key: 'EXAMPLESECRET'

@@ -181,7 +181,7 @@ Else {
             If ($state -eq $true) {
                 # Check if already a member of the domain
                 If ((gwmi win32_computersystem).domain -eq $domain) {
-                    Fail-Json $result "The computer(s) $hostname is/are already a member of $domain."
+                    Exit-Json $result "The computer(s) $hostname is/are already a member of $domain."
                 }
                 If ($workgroup) {
                     Try {

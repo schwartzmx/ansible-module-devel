@@ -13,6 +13,8 @@ This is where my work on ansible modules will be done before submitting PRs to h
     - install pscx (if needed), runs pscx commands
   - `win_s3`
     - download/upload to aws_s3
+  - `win_timezone`
+    - machine timezone setting via tzutil
   - `win_unzip`
     - unzip compressed files/folders
   - `win_zip`
